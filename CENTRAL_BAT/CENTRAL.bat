@@ -9,14 +9,14 @@ set "PS_SCRIPT=%ROOT%\AUTOMACAO_SISTEMA.ps1"
 
 if not exist "%PS_SCRIPT%" (
   echo.
-  echo [ERRO] Script principal nao encontrado:
+  echo [ERRO] Script principal não encontrado:
   echo %PS_SCRIPT%
   pause
   exit /b 1
 )
 
 echo ==========================================
-echo  CENTRAL - SISTEMA UNIFICADO DE AUTOMACAO
+echo  CENTRAL - SISTEMA UNIFICADO DE AUTOMAÇÃO
 echo ==========================================
 echo.
 echo Iniciando menu PowerShell...
@@ -27,7 +27,7 @@ set "EC=%ERRORLEVEL%"
 
 echo.
 if not "%EC%"=="0" (
-  echo [ERRO] O sistema finalizou com codigo %EC%.
+  echo [ERRO] O sistema finalizou com código %EC%.
 ) else (
   echo [OK] Sistema finalizado.
 )
