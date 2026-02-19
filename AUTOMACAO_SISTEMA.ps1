@@ -1,11 +1,13 @@
-param(
+﻿param(
   [switch]$NoMenu,
   [string]$Action,
   [string]$Path
 )
 
 $ErrorActionPreference = 'Stop'
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ConfigPath = Join-Path $ScriptRoot 'config\system_config.psd1'
@@ -63,14 +65,26 @@ function Invoke-ExternalScript {
 
   Write-Log "Executando: $ScriptPath $($Arguments -join ' ')"
 
+  $safeArguments = @($Arguments | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+
   if ($Wait) {
-    $proc = Start-Process -FilePath $ScriptPath -ArgumentList $Arguments -Wait -PassThru -NoNewWindow
+    if ($safeArguments.Count -gt 0) {
+      $proc = Start-Process -FilePath $ScriptPath -ArgumentList $safeArguments -Wait -PassThru -NoNewWindow
+    }
+    else {
+      $proc = Start-Process -FilePath $ScriptPath -Wait -PassThru -NoNewWindow
+    }
     if ($proc.ExitCode -ne 0) {
       throw "Execução retornou código $($proc.ExitCode): $ScriptPath"
     }
   }
   else {
-    Start-Process -FilePath $ScriptPath -ArgumentList $Arguments | Out-Null
+    if ($safeArguments.Count -gt 0) {
+      Start-Process -FilePath $ScriptPath -ArgumentList $safeArguments | Out-Null
+    }
+    else {
+      Start-Process -FilePath $ScriptPath | Out-Null
+    }
   }
 
   Write-Log "Concluído: $ScriptPath"
