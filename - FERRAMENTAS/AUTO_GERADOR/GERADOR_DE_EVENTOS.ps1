@@ -259,9 +259,41 @@ while ($true) {
   $alt   = IsDown([RecorderU32]::VK_MENU) | Out-Null  # (não gravamos ALT sozinho)
 
   # CTRL + A/C/V
-  if ($ctrl -and (EdgeDown([RecorderU32]::VK_A))) { Emit-Line 'Press-Key("^a")' }
-  if ($ctrl -and (EdgeDown([RecorderU32]::VK_C))) { Emit-Line 'Press-Key("^c")' }
-  if ($ctrl -and (EdgeDown([RecorderU32]::VK_V))) { Emit-Line 'Press-Key("^v")' }
+  # CTRL + A
+  if ($ctrl -and (EdgeDown([RecorderU32]::VK_A))) {
+      Emit-Line 'Press-Key("^a")'
+  }
+
+  # CTRL + C (COPIAR)
+  if ($ctrl -and (EdgeDown([RecorderU32]::VK_C))) {
+
+      Start-Sleep -Milliseconds 200
+
+      $clip = ""
+      try {
+          $clip = Get-Clipboard -Raw
+      } catch {}
+
+      $clip = ($clip -replace "`r","" -replace "`n"," ").Trim()
+
+      Emit-Line ('Press-Key("^c") # COPIADO: ' + $clip)
+  }
+
+  # CTRL + V (COLAR)
+  if ($ctrl -and (EdgeDown([RecorderU32]::VK_V))) {
+
+      Start-Sleep -Milliseconds 100
+
+      $clip = ""
+      try {
+          $clip = Get-Clipboard -Raw
+      } catch {}
+
+      $clip = ($clip -replace "`r","" -replace "`n"," ").Trim()
+
+      Emit-Line ('Press-Key("^v") # COLADO: ' + $clip)
+  }
+
 
   # TAB / SHIFT+TAB
   if (EdgeDown([RecorderU32]::VK_TAB)) {
