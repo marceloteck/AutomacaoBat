@@ -1,0 +1,90 @@
+agora vc é responsável por deixar esses dados bem organizados
+não pode ter erros, cada arquivo de está respeitosamente separado para copiar e colar
+os dados informados deve ser usados conforme solicitados
+vamos organizar esses dados abaixo e montar a estrutura informada pra cada arquivo, 
+
+veja esses dados da escala de abate:
+```
+LOTE	Pedido	Instrucao	Nome dos Produtores	Total	Aviso	PRECO VC	PRECO BI	PRAZO	Comprador
+1	26059	24730	JANIO DE SOUSA CUNHA	19		295	315	10	SAMUEL
+2	26060	24731	ODILIO DA SILVA AGUIAR	16		290	305	30	RENAM
+3	25879	24579	RODOLFO DE CASTRO FREIRE	36		0	320	5	SAMUEL
+4	25882	24585	MARTA MENDANHA FRANCO DE REZENDE	16		0	320	30	RENATO
+5	25563	24413	VALDA MARIA CAMPOS MARTINS	18		0	310	20	GILBERTO
+6	25914	24615	EDENILSON SEBASTIAO BOCCHI	36		300	0	10	RENATO
+7	25608	24442	ANTONIO AURELIO PALMEIRA PACHECO	76		300	0	30	FIVELA
+8	25788	24481	ROSANGELA EMIDIO VIEIRA	54		295	0	30	JUNIOR
+9	25883	24586	TERENCIO VASCONCELOS PINHEIRO	20		295	0	3	GILBERTO
+10	25917	24622	FABRICIA BASILIO RESENDE	36		295	0	30	RENAM
+11	25909	24597	EDVALDO FERREIRA DE AGUIAR	18		290	0	30	RENAM
+12	25908	24596	GUSTAVO LINO E SILVA RESENDE	18		300	0	30	RENAM
+13	25924	24623	MAURO DONISETI SILVERIO RODRIGUES	68		290	0	30	RENAM
+14	25983	24686	ADOLFO GONCALVES JORCELINO JUNIOR	54		300	0	7	RENATO
+15.18	25915	24616	MARCIEL LOPES DE ABREU	40	15.18	295	0	BTG	RENATO
+16.17	25761	24453	AMOS DA SILVA KRASOWSKI	18	16.17	290	310	BTG	GILBERTO
+19	25929	24655	AGROPECUARIA SANTA OLIMPIA LTDA	61		0	320	15	RENATO
+```
+
+agora seguindo esses dados da escala de abate faça esses arquivos pra mim seguindo esse padrão
+
+para o arquivo RecebimentoDeEntrada.txt deve ficar assim:
+- vai pegar somente o nome do produtor e a instrução e fazer um desse pra cada produtor, STATUS deve ser pendente
+TIPO de ser PF pra pessoa física e PJ pra pessoa jurídica, em NOTAS, deve ter duas quebra de linha abaixo antes de começar o outro bloco [PRODUTOR].
+```
+[PRODUTOR]
+NOME=NOME DO PRODUTOR
+STATUS=PENDENTE
+TIPO=PF
+INSTRUCAO=00000
+NOTAS:
+
+
+```
+para o arquivo CadastrarPlacasVeiculo.txt deve ficar assim:
+- aqui da mesma forma vai pegar nome do produtor instrução e pedido pra preencher e depois de placas deve ficar duas quebra de linha
+
+```
+[PRODUTOR]
+NOME=NOME DO PRODUTOR
+STATUS=PENDENTE
+TIPO=PF
+INSTRUCAO=00000
+PEDIDO=00000
+GRorJBS=
+{
+    # Aguardando
+}
+QUANT_MINUTAS=
+{
+    # Aguardando
+}
+PLACAS:
+
+```
+
+agora para o arquivo nfe_contratacao_veiculo.txt segue o modelo
+- vai pegar o nome do produtor instrução e pedido
+
+```
+[PRODUTOR]
+NOME=NOME DO PRODUTOR
+STATUS=PENDENTE
+TIPO=PF
+INSTRUCAO=00000
+PEDIDO=00000
+TOTAL_PLACAS=1
+NOTAS:
+
+```
+para o arquivo faturarF7F3.txt e notas_PEDIDOS.txt, os dois usam esse mesmo formato, deve montar esses formato abaixo
+
+```
+[PRODUTOR]
+NOME=NOME DO PRODUTOR
+STATUS=PENDENTE
+TIPO=PF
+INSTRUCAO=00000
+PEDIDO=00000
+NOTAS:
+
+```
