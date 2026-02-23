@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Documentação — Automação Padronizada (config.txt + dados.txt)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a2e;
+      --text:#e8eefc;
+      --muted:#a9b7d6;
+      --line:#203155;
+      --accent:#7aa2ff;
+      --accent2:#6ee7b7;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --code:#0a1020;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background: radial-gradient(1200px 800px at 20% 0%, rgba(122,162,255,.25), transparent 50%),
+                  radial-gradient(900px 700px at 100% 10%, rgba(110,231,183,.18), transparent 60%),
+                  var(--bg);
+      line-height:1.55;
+    }
+    header{
+      padding:32px 18px 16px;
+      max-width:1100px;
+      margin:0 auto;
+    }
+    .hero{
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding:22px 20px;
+      box-shadow: var(--shadow);
+    }
+    h1{margin:0 0 8px; font-size:26px}
+    .subtitle{margin:0; color:var(--muted)}
+    main{
+      max-width:1100px;
+      margin:0 auto;
+      padding: 0 18px 60px;
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      gap:18px;
+    }
+    nav{
+      position: sticky;
+      top: 14px;
+      align-self:start;
+      background: rgba(15,26,46,.75);
+      backdrop-filter: blur(8px);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding:14px;
+      box-shadow: var(--shadow);
+    }
+    nav a{
+      display:block;
+      color:var(--muted);
+      text-decoration:none;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid transparent;
+      font-size:14px;
+    }
+    nav a:hover{
+      color:var(--text);
+      border-color: rgba(122,162,255,.35);
+      background: rgba(122,162,255,.08);
+    }
+    section{
+      background: rgba(15,26,46,.75);
+      backdrop-filter: blur(8px);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding:18px;
+      box-shadow: var(--shadow);
+      margin-bottom:18px;
+    }
+    h2{margin:0 0 8px; font-size:20px}
+    h3{margin:16px 0 8px; font-size:16px}
+    p, li{color:var(--text)}
+    .muted{color:var(--muted)}
+    .pill{
+      display:inline-block;
+      padding:2px 9px;
+      border-radius:999px;
+      border:1px solid rgba(122,162,255,.35);
+      background: rgba(122,162,255,.08);
+      color: var(--text);
+      font-size:12px;
+      vertical-align:middle;
+      margin-right:6px;
+    }
+    .pill.ok{border-color: rgba(110,231,183,.35); background: rgba(110,231,183,.08);}
+    .pill.warn{border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.10);}
+    .pill.bad{border-color: rgba(251,113,133,.35); background: rgba(251,113,133,.10);}
+    pre{
+      margin:12px 0;
+      padding:14px;
+      background: var(--code);
+      border:1px solid rgba(122,162,255,.18);
+      border-radius: 12px;
+      overflow:auto;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+    }
+    code, pre{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:13px}
+    .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .callout{
+      border-left:4px solid rgba(122,162,255,.7);
+      background: rgba(122,162,255,.08);
+      padding:12px 12px 12px 14px;
+      border-radius:12px;
+      margin:12px 0;
+    }
+    .callout.warn{border-left-color: rgba(251,191,36,.8); background: rgba(251,191,36,.08);}
+    .callout.bad{border-left-color: rgba(251,113,133,.85); background: rgba(251,113,133,.08);}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin:10px 0 2px;
+      overflow:hidden;
+      border-radius:12px;
+      border:1px solid var(--line);
+    }
+    th, td{
+      padding:10px 10px;
+      border-bottom:1px solid var(--line);
+      vertical-align:top;
+      font-size:14px;
+    }
+    th{
+      text-align:left;
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+    }
+    tr:last-child td{border-bottom:none}
+    .k{color:var(--accent)}
+    .v{color:var(--accent2)}
+    footer{
+      max-width:1100px;
+      margin:0 auto;
+      padding:0 18px 24px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    @media (max-width: 920px){
+      main{grid-template-columns:1fr}
+      nav{position:relative}
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="hero">
+    <h1>Documentação — Automação Padronizada (config.txt + dados.txt)</h1>
+    <p class="subtitle">
+      Um “mini DSL” (linguagem simples) baseado em TXT/INI para automações via PowerShell:
+      <span class="pill ok">1 motor único</span>
+      <span class="pill">N automações</span>
+      <span class="pill">config + dados</span>
+      <span class="pill">variáveis</span>
+      <span class="pill">filtros</span>
+    </p>
+  </div>
+</header>
+
+<main>
+  <nav>
+    <a href="#visao-geral">Visão geral</a>
+    <a href="#estrutura">Estrutura de pastas</a>
+    <a href="#como-rodar">Como rodar (RUN_*.bat)</a>
+    <a href="#config">config.txt (Referência completa)</a>
+    <a href="#dados">dados.txt (Referência completa)</a>
+    <a href="#variaveis">Variáveis {{...}}</a>
+    <a href="#condicoes">Condições (QUANDO)</a>
+    <a href="#passos">Passos (PASSO1..)</a>
+    <a href="#exemplos">Exemplos prontos</a>
+    <a href="#boas-praticas">Boas práticas</a>
+    <a href="#troubleshooting">Erros comuns</a>
+    <a href="#templates">Templates para copiar</a>
+  </nav>
+
+  <div>
+    <section id="visao-geral">
+      <h2>Visão geral</h2>
+      <p>
+        Este sistema usa <b>dois arquivos TXT</b> por automação:
+        <span class="pill">config.txt</span> (regras + tarefas) e
+        <span class="pill">dados.txt</span> (registros de produtores/dados).
+      </p>
+      <p class="muted">
+        Você cria infinitas automações apenas duplicando um <code>RUN_*.bat</code> e trocando quais TXT ele aponta.
+        O motor <code>AUTOMACAO_PADRAO.ps1</code> é sempre o mesmo.
+      </p>
+
+      <div class="callout">
+        <b>Fluxo:</b>
+        <ol>
+          <li>O <code>RUN_*.bat</code> chama o motor e passa <code>-Config</code> e <code>-Dados</code>.</li>
+          <li>O motor lê o <b>config.txt</b> e monta a lista de <b>TAREFAS</b>.</li>
+          <li>O motor lê o <b>dados.txt</b> e monta a lista de <b>PRODUTORES</b> (ou outros registros, se você usar).</li>
+          <li>Para cada tarefa, ele executa os <b>PASSO1..PASSOn</b> (com variáveis e filtros).</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="estrutura">
+      <h2>Estrutura de pastas</h2>
+      <pre><code>AUTOMACAO\
+  CENTRAL_MENU.bat                 (menu central - opcional)
+  RUN_RECEBIMENTO.bat              (launcher da automação A)
+  RUN_SALVAR_PEDIDOS.bat           (launcher da automação B)
+  scripts\
+    AUTOMACAO_PADRAO.ps1           (motor único)
+    click_positions.ps1            (opcional: CLICK:)
+  input\
+    recebimento_config.txt
+    recebimento_dados.txt
+    salvar_pedidos_config.txt
+    salvar_pedidos_dados.txt</code></pre>
+
+      <div class="callout warn">
+        <b>Importante:</b> mantenha nomes consistentes e claros (ex.: <code>xxx_config.txt</code> e <code>xxx_dados.txt</code>).
+      </div>
+    </section>
+
+    <section id="como-rodar">
+      <h2>Como rodar (RUN_*.bat)</h2>
+      <p>Você duplica esse arquivo e muda apenas os caminhos dos TXT:</p>
+      <pre><code>@echo off
+setlocal
+chcp 65001 &gt;nul
+cd /d "%~dp0"
+
+set "MOTOR=%~dp0scripts\AUTOMACAO_PADRAO.ps1"
+set "CFG=%~dp0input\recebimento_config.txt"
+set "DADOS=%~dp0input\recebimento_dados.txt"
+
+powershell -NoProfile -ExecutionPolicy Bypass -STA -File "%MOTOR%" -Config "%CFG%" -Dados "%DADOS%"
+exit /b %ERRORLEVEL%</code></pre>
+      <p class="muted">
+        O motor aceita caminhos absolutos ou relativos. O recomendado é sempre usar <code>%~dp0</code> (relativo ao BAT).
+      </p>
+    </section>
+
+    <section id="config">
+      <h2>config.txt — Referência completa</h2>
+
+      <h3>1) Seções suportadas</h3>
+      <ul>
+        <li><span class="pill">[CONFIG]</span> configurações globais do motor</li>
+        <li><span class="pill">[VAR]</span> variáveis globais (usadas em <code>{{VAR.X}}</code>)</li>
+        <li><span class="pill">[TAREFA]</span> define uma tarefa (pode repetir várias vezes)</li>
+      </ul>
+
+      <h3>2) [CONFIG] — parâmetros</h3>
+      <table>
+        <tr><th>Chave</th><th>Tipo</th><th>Padrão</th><th>Descrição</th></tr>
+        <tr>
+          <td><code>DELAY_PADRAO_MS</code></td>
+          <td>Número</td>
+          <td>0</td>
+          <td>Delay automático após <code>KEY</code>, <code>PASTE</code>, <code>TYPE</code> e <code>CLICK</code>.</td>
+        </tr>
+        <tr>
+          <td><code>CONFIRMAR_INICIO</code></td>
+          <td>S/N</td>
+          <td>S</td>
+          <td>Se <b>S</b>, pergunta “Iniciar agora? (S/N)” antes de rodar.</td>
+        </tr>
+        <tr>
+          <td><code>MOSTRAR_CONTAGEM</code></td>
+          <td>S/N</td>
+          <td>S</td>
+          <td>Se <b>S</b>, faz contagem 3..1 com beep antes de iniciar (tempo para focar o ERP).</td>
+        </tr>
+      </table>
+
+      <h3>3) [VAR] — variáveis globais</h3>
+      <p class="muted">
+        Tudo que você colocar aqui vira <code>{{VAR.SUA_CHAVE}}</code> nas tarefas.
+      </p>
+      <pre><code>[VAR]
+PASTA_EXPORT=C:\Temp\Export
+OBS=Rodar com Corporate em foco</code></pre>
+
+      <h3>4) [TAREFA] — campos</h3>
+      <table>
+        <tr><th>Chave</th><th>Tipo</th><th>Padrão</th><th>Descrição</th></tr>
+        <tr>
+          <td><code>NOME</code></td>
+          <td>Texto</td>
+          <td>(sem nome)</td>
+          <td>Nome exibido no console.</td>
+        </tr>
+        <tr>
+          <td><code>ATIVO</code></td>
+          <td>S/N</td>
+          <td>S</td>
+          <td>Se <b>N</b>, a tarefa é ignorada.</td>
+        </tr>
+        <tr>
+          <td><code>ESCOPO</code></td>
+          <td>GLOBAL/PRODUTOR</td>
+          <td>GLOBAL</td>
+          <td>
+            <b>GLOBAL</b>: roda 1 vez.<br/>
+            <b>PRODUTOR</b>: roda para cada registro do <code>dados.txt</code> (cada <code>[PRODUTOR]</code>).
+          </td>
+        </tr>
+        <tr>
+          <td><code>REPETIR</code></td>
+          <td>Número</td>
+          <td>1</td>
+          <td>Quantas vezes repetir a tarefa (útil para loop simples).</td>
+        </tr>
+        <tr>
+          <td><code>QUANDO</code></td>
+          <td>Expressão</td>
+          <td>(vazio)</td>
+          <td>Filtro condicional (somente para ESCOPO=PRODUTOR). Ex.: <code>STATUS==PENDENTE && TIPO==PF</code></td>
+        </tr>
+        <tr>
+          <td><code>PASSO1..PASSOn</code></td>
+          <td>Texto</td>
+          <td>-</td>
+          <td>Passos executáveis (ver seção “Passos”).</td>
+        </tr>
+      </table>
+
+      <h3>Exemplo mínimo de tarefa</h3>
+      <pre><code>[TAREFA]
+NOME=COLAR INSTRUCAO
+ATIVO=S
+ESCOPO=PRODUTOR
+QUANDO=STATUS==PENDENTE
+REPETIR=1
+
+PASSO1=SLEEP:3000
+PASSO2=PASTE={{INSTRUCAO}}
+PASSO3=KEY:{ENTER}
+PASSO4=SLEEP:300</code></pre>
+    </section>
+
+    <section id="dados">
+      <h2>dados.txt — Referência completa</h2>
+
+      <p>
+        O <b>dados.txt</b> é o arquivo com os registros. No padrão atual, o motor entende:
+        <span class="pill">[PRODUTOR]</span> (pode repetir várias vezes).
+      </p>
+
+      <h3>Campos sugeridos</h3>
+      <p class="muted">Você pode criar outros campos livremente; se existirem no TXT, você consegue usar como <code>{{CAMPO}}</code>.</p>
+
+      <pre><code>[PRODUTOR]
+NOME=JANIO DE SOUSA CUNHA
+STATUS=PENDENTE
+TIPO=PF
+INSTRUCAO=24730
+PEDIDO=26059
+NOTAS=NF123;NF124</code></pre>
+
+      <div class="callout warn">
+        <b>Observação:</b> os valores são tratados como texto. Em <code>QUANDO</code>, a comparação é exata (ex.: <code>PENDENTE</code> é diferente de <code>pendente</code>).
+      </div>
+    </section>
+
+    <section id="variaveis">
+      <h2>Variáveis {{...}}</h2>
+      <p>Você pode inserir variáveis dentro de qualquer passo que aceita texto (ex.: PASTE/TYPE/ASK/OPENPATH/SETVAR):</p>
+
+      <table>
+        <tr><th>Tipo</th><th>Exemplo</th><th>Resultado</th></tr>
+        <tr>
+          <td>Campo do PRODUTOR</td>
+          <td><code>{{INSTRUCAO}}</code></td>
+          <td>Cola o valor de <code>INSTRUCAO</code> do produtor atual</td>
+        </tr>
+        <tr>
+          <td>Campo do PRODUTOR</td>
+          <td><code>{{NOME}}</code></td>
+          <td>Nome do produtor atual</td>
+        </tr>
+        <tr>
+          <td>Variável global</td>
+          <td><code>{{VAR.PASTA_EXPORT}}</code></td>
+          <td>Busca em <code>[VAR]</code> do config.txt</td>
+        </tr>
+      </table>
+
+      <h3>Exemplos</h3>
+      <pre><code>PASSO1=ASK:Iniciar tarefa para {{NOME}}? (S/N)
+PASSO2=PASTE={{INSTRUCAO}}
+PASSO3=OPENPATH:{{VAR.PASTA_EXPORT}}</code></pre>
+
+      <div class="callout">
+        <b>Dica:</b> você pode criar um texto “padrão” em <code>[VAR]</code> e reutilizar em muitas tarefas.
+      </div>
+    </section>
+
+    <section id="condicoes">
+      <h2>Condições (QUANDO)</h2>
+      <p>
+        O campo <code>QUANDO</code> controla <b>se a tarefa roda para o produtor atual</b>.
+        Só faz sentido quando <code>ESCOPO=PRODUTOR</code>.
+      </p>
+
+      <h3>Operadores suportados</h3>
+      <ul>
+        <li><code>==</code> igual</li>
+        <li><code>!=</code> diferente</li>
+        <li><code>&amp;&amp;</code> E (AND)</li>
+        <li><code>||</code> OU (OR)</li>
+      </ul>
+
+      <h3>Exemplos prontos</h3>
+      <pre><code>QUANDO=STATUS==PENDENTE
+QUANDO=STATUS==PENDENTE && TIPO==PF
+QUANDO=STATUS!=OK
+QUANDO=TIPO==PF || TIPO==PJ</code></pre>
+
+      <div class="callout warn">
+        <b>Regra:</b> a comparação é <b>texto exato</b>. Se quiser padronizar, use sempre os mesmos valores (ex.: STATUS = OK/PENDENTE/ERRO).
+      </div>
+    </section>
+
+    <section id="passos">
+      <h2>Passos (PASSO1..PASSOn)</h2>
+      <p>Os passos são a “linguagem” que executa ações. Cada <code>PASSO</code> é uma linha executável.</p>
+
+      <h3>Lista completa de comandos suportados</h3>
+      <table>
+        <tr><th>Comando</th><th>Formato</th><th>O que faz</th></tr>
+        <tr>
+          <td><span class="pill">SLEEP</span></td>
+          <td><code>SLEEP:3000</code></td>
+          <td>Espera em milissegundos.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">KEY</span></td>
+          <td><code>KEY:{ENTER}</code> / <code>KEY:^a</code></td>
+          <td>Envia tecla via SendKeys. Exemplos: <code>{F7}</code>, <code>^v</code>, <code>+{TAB}</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">PASTE</span></td>
+          <td><code>PASTE=texto</code></td>
+          <td>Coloca o texto no Clipboard e envia Ctrl+V. Aceita <code>{{...}}</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">TYPE</span></td>
+          <td><code>TYPE=texto</code></td>
+          <td>Digita literal via SendKeys (pode ser sensível a caracteres especiais). Aceita <code>{{...}}</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">ASK</span></td>
+          <td><code>ASK:pergunta</code></td>
+          <td>Pergunta S/N. Se N, aborta a tarefa atual (erro controlado). Aceita <code>{{...}}</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">CLICK</span></td>
+          <td><code>CLICK:NOME</code></td>
+          <td>Executa <code>Invoke-ClickPos -Name</code> no <code>click_positions.ps1</code> (se existir).</td>
+        </tr>
+        <tr>
+          <td><span class="pill">OPEN_DESKTOP</span></td>
+          <td><code>OPEN_DESKTOP</code></td>
+          <td>Abre <code>%USERPROFILE%\Downloads\DESKTOP</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">OPENPATH</span></td>
+          <td><code>OPENPATH:C:\Pasta</code></td>
+          <td>Abre um caminho com o app padrão (normalmente o Explorer). Aceita <code>{{...}}</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">SETVAR</span></td>
+          <td><code>SETVAR:CHAVE=VALOR</code></td>
+          <td>Cria/atualiza variável global em runtime (vira <code>{{VAR.CHAVE}}</code>). Aceita <code>{{...}}</code>.</td>
+        </tr>
+      </table>
+
+      <h3>SendKeys — Cheatsheet rápido</h3>
+      <div class="grid2">
+        <pre><code>{ENTER}      Enter
+{TAB}        Tab
++{TAB}       Shift+Tab
+^{A} / ^a    Ctrl+A
+^v           Ctrl+V
+^c           Ctrl+C
+{F1}..{F12}  Teclas de função
+{UP} {DOWN}  Setas
+{LEFT}{RIGHT} Setas</code></pre>
+        <pre><code>Exemplos:
+PASSO1=KEY:{F7}
+PASSO2=SLEEP:500
+PASSO3=PASTE={{INSTRUCAO}}
+PASSO4=KEY:{ENTER}
+PASSO5=KEY:{ENTER}</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <b>Dica importante:</b> prefira <code>PASTE=</code> para textos longos e números; o <code>TYPE=</code> pode falhar com caracteres especiais.
+      </div>
+    </section>
+
+    <section id="exemplos">
+      <h2>Exemplos prontos (copiar e usar)</h2>
+
+      <h3>Exemplo 1 — F7 + colar instrução + Enter Enter</h3>
+      <pre><code>[TAREFA]
+NOME=F7 + COLAR INSTRUCAO + ENTER ENTER
+ATIVO=S
+ESCOPO=PRODUTOR
+QUANDO=STATUS==PENDENTE
+REPETIR=1
+
+PASSO1=ASK:Deixar ERP em foco para {{NOME}}? (S/N)
+PASSO2=SLEEP:2000
+PASSO3=KEY:{F7}
+PASSO4=SLEEP:500
+PASSO5=PASTE={{INSTRUCAO}}
+PASSO6=SLEEP:300
+PASSO7=KEY:{ENTER}
+PASSO8=KEY:{ENTER}
+PASSO9=SLEEP:800</code></pre>
+
+      <h3>Exemplo 2 — Rodar só PF e colar pedido</h3>
+      <pre><code>[TAREFA]
+NOME=COLAR PEDIDO (SO PF)
+ATIVO=S
+ESCOPO=PRODUTOR
+QUANDO=STATUS==PENDENTE && TIPO==PF
+REPETIR=1
+
+PASSO1=KEY:^a
+PASSO2=PASTE={{PEDIDO}}
+PASSO3=KEY:{ENTER}
+PASSO4=SLEEP:300</code></pre>
+
+      <h3>Exemplo 3 — Abrir pasta Desktop no final da automação</h3>
+      <pre><code>[TAREFA]
+NOME=ABRIR DESKTOP NO FINAL
+ATIVO=S
+ESCOPO=GLOBAL
+REPETIR=1
+
+PASSO1=OPEN_DESKTOP</code></pre>
+
+      <h3>Exemplo 4 — Usar variáveis globais (VAR)</h3>
+      <pre><code>[VAR]
+PASTA_EXPORT=C:\Temp\Export
+
+[TAREFA]
+NOME=ABRIR PASTA EXPORT
+ATIVO=S
+ESCOPO=GLOBAL
+REPETIR=1
+
+PASSO1=OPENPATH:{{VAR.PASTA_EXPORT}}</code></pre>
+
+      <h3>Exemplo 5 — SETVAR em runtime (guardar valor para usar depois)</h3>
+      <pre><code>[TAREFA]
+NOME=GUARDAR PRODUTOR ATUAL EM VAR
+ATIVO=S
+ESCOPO=PRODUTOR
+QUANDO=STATUS==PENDENTE
+REPETIR=1
+
+PASSO1=SETVAR:ULTIMO_NOME={{NOME}}
+PASSO2=ASK:Ultimo produtor foi {{VAR.ULTIMO_NOME}}. Continuar? (S/N)</code></pre>
+
+      <div class="callout warn">
+        <b>Observação:</b> SETVAR cria uma variável global que permanece enquanto o motor está rodando (até terminar a execução).
+      </div>
+    </section>
+
+    <section id="boas-praticas">
+      <h2>Boas práticas</h2>
+      <ul>
+        <li><b>Padronize valores</b>: STATUS = OK / PENDENTE / ERRO (evita filtros quebrando).</li>
+        <li><b>Use PASTE</b> para textos e números; use TYPE só quando necessário.</li>
+        <li><b>Adicione SLEEP</b> após ações que abrem telas/menus (F7, F4, etc.).</li>
+        <li><b>Comece com ASK</b> no início da tarefa crítica: evita rodar no lugar errado.</li>
+        <li><b>Delays curtos</b> (200–500ms) normalmente são suficientes; telas pesadas pedem 800–1500ms.</li>
+        <li><b>Separe por tarefas</b>: uma tarefa por “bloco lógico” facilita manutenção.</li>
+      </ul>
+    </section>
+
+    <section id="troubleshooting">
+      <h2>Erros comuns e como corrigir</h2>
+
+      <div class="callout bad">
+        <b>1) “PASSO inválido”</b><br/>
+        Causa: escreveu um comando que o motor não reconhece.<br/>
+        Correção: use somente os formatos listados em <a href="#passos" style="color:var(--text)">Passos</a>.
+      </div>
+
+      <div class="callout warn">
+        <b>2) Variável vazia (ex.: {{INSTRUCAO}} não cola nada)</b><br/>
+        Causa: o campo não existe no produtor atual ou está vazio no <code>dados.txt</code>.<br/>
+        Correção: confira a chave (INSTRUCAO) e o valor no bloco <code>[PRODUTOR]</code>.
+      </div>
+
+      <div class="callout warn">
+        <b>3) O ERP não estava em foco</b><br/>
+        Sintoma: teclas e colagens vão para o lugar errado.<br/>
+        Correção: mantenha <code>MOSTRAR_CONTAGEM=S</code> e use <code>ASK</code> antes do bloco.
+      </div>
+
+      <div class="callout warn">
+        <b>4) “CLICK usado, mas click_positions.ps1 não fornece Invoke-ClickPos”</b><br/>
+        Causa: você usou <code>CLICK:</code> sem ter um <code>click_positions.ps1</code> compatível.<br/>
+        Correção: crie/ajuste <code>scripts\click_positions.ps1</code> com a função <code>Invoke-ClickPos</code>.
+      </div>
+
+      <div class="callout">
+        <b>5) Delay insuficiente</b><br/>
+        Sintoma: o sistema “come” teclas ou cola antes do campo abrir.<br/>
+        Correção: aumente <code>SLEEP</code> após ações de tela ou aumente <code>DELAY_PADRAO_MS</code>.
+      </div>
+    </section>
+
+    <section id="templates">
+      <h2>Templates para copiar</h2>
+
+      <h3>Template — config.txt (estrutura padrão)</h3>
+      <pre><code>[CONFIG]
+DELAY_PADRAO_MS=200
+CONFIRMAR_INICIO=S
+MOSTRAR_CONTAGEM=S
+
+[VAR]
+OBS=Rodar com Corporate em foco
+
+[TAREFA]
+NOME=NOME DA TAREFA AQUI
+ATIVO=S
+ESCOPO=PRODUTOR
+REPETIR=1
+QUANDO=STATUS==PENDENTE
+
+PASSO1=ASK:Iniciar para {{NOME}}? (S/N)
+PASSO2=SLEEP:2000
+PASSO3=KEY:{F7}
+PASSO4=SLEEP:500
+PASSO5=PASTE={{INSTRUCAO}}
+PASSO6=KEY:{ENTER}
+PASSO7=KEY:{ENTER}
+PASSO8=SLEEP:800</code></pre>
+
+      <h3>Template — dados.txt (vários produtores)</h3>
+      <pre><code>[PRODUTOR]
+NOME=
+STATUS=
+TIPO=
+INSTRUCAO=
+PEDIDO=
+NOTAS=
+
+[PRODUTOR]
+NOME=
+STATUS=
+TIPO=
+INSTRUCAO=
+PEDIDO=
+NOTAS=</code></pre>
+
+      <h3>Template — tarefa GLOBAL (rodar uma vez)</h3>
+      <pre><code>[TAREFA]
+NOME=CONFIGURAR TELA / ABRIR PASTA
+ATIVO=S
+ESCOPO=GLOBAL
+REPETIR=1
+
+PASSO1=OPENPATH:C:\MinhaPasta
+PASSO2=SLEEP:500
+PASSO3=OPEN_DESKTOP</code></pre>
+
+      <div class="callout">
+        <b>Se quiser evoluir ainda mais:</b> dá para adicionar no motor (futuro) comandos como
+        <code>FOREACH_NOTA</code>, <code>IF/ELSE/ENDIF</code> e validações (ex.: “se INSTRUCAO vazio, pular”).
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <p>
+    Documentação feita para o padrão: <b>config.txt + dados.txt</b> + motor único <code>AUTOMACAO_PADRAO.ps1</code>.
+    Você pode salvar este arquivo como <code>docs.html</code> dentro do seu projeto e abrir no Chrome.
+  </p>
+</footer>
+</body>
+</html>

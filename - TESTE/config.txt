@@ -1,0 +1,26 @@
+# ==========================================
+# config.txt (exemplo)
+# Cada linha = 1 comando
+# Comentarios: comece com # ou ;
+# ==========================================
+
+CONTAGEM 3
+
+CLICAR ABRIR_FILTRO
+CLICAR FOCAR_IMPUT_FILTRO
+
+CONTROL+A
+COLAR = {{DATA}}         # data atual (dd/MM/yyyy)
+
+TAB
+CONTROL+A
+COLAR = {{DATA}}         # data atual de novo
+
+COLAR = 7                # "digitar/colar = 7" (padrão: colar)
+
+TECLA F3
+CLICAR CLICAR_INSTRUCAO
+TECLA F4
+
+ESPERAR 500ms
+TECLA ENTER

@@ -1,0 +1,159 @@
+; ==========================================================
+; RECEBIMENTO - CONFIG (para MOTOR PROFISSIONAL)
+; ==========================================================
+
+[CONFIG]
+; Delay padrão após KEY/PASTE/TYPE/CLICK
+DELAY_PADRAO_MS=0
+
+; Perguntar no início e contagem antes de executar
+CONFIRMAR_INICIO=S
+MOSTRAR_CONTAGEM=N
+
+; MODO=REAL (executa) ou SIMULAR (só loga/mostra)
+MODO=REAL
+
+; Log
+LOG_ATIVO=S
+LOG_ARQUIVO=logs\recebimento_exec.log
+
+; Tratamento global de erro
+; ASK | SKIP_PRODUTOR | ABORT
+ON_ERROR=ASK
+
+[VAR]
+; Equivalentes do seu script antigo
+START_DELAY_SECONDS=2
+
+DELAY_AFTER_F2_MS=250
+DELAY_AFTER_TAB_MS=120
+DELAY_AFTER_INSTRUCAO_MS=150
+
+DELAY_AFTER_PASTE_MS=3000
+DELAY_STEP_MS=1000
+
+FINAL_DELAY_F4_MS=500
+FINAL_DELAY_RIGHT_MS=150
+FINAL_DELAY_ENTER_MS=150
+
+CODE_PF=2630
+CODE_PJ=2629
+
+; ==========================================================
+; MACROS (reuso)
+; ==========================================================
+
+[MACRO]
+NOME=START_DELAY
+SCRIPT=[
+; Iniciando em X segundos...
+SLEEP:200
+SLEEP:200
+; como o motor só tem SLEEP em ms:
+SLEEP:2000
+]
+
+[MACRO]
+NOME=IR_CAMPO_INSTRUCAO
+SCRIPT=[
+KEY:{F2}
+SLEEP:{{VAR.DELAY_AFTER_F2_MS}}
+
+KEY:{TAB}
+SLEEP:{{VAR.DELAY_AFTER_TAB_MS}}
+
+; digita instrução
+TYPE={{INSTRUCAO}}
+SLEEP:{{VAR.DELAY_AFTER_INSTRUCAO_MS}}
+
+KEY:{TAB}
+SLEEP:{{VAR.DELAY_AFTER_TAB_MS}}
+]
+
+[MACRO]
+NOME=PROCESSAR_UMA_NOTA
+SCRIPT=[
+; Cola chave NF (44 dígitos)
+PASTE={{ITEM}}
+SLEEP:{{VAR.DELAY_AFTER_PASTE_MS}}
+
+; TAB
+KEY:{TAB}
+SLEEP:{{VAR.DELAY_STEP_MS}}
+
+; cola código conforme PF/PJ (definido antes em VAR.CODIGO_ATUAL)
+TYPE={{VAR.CODIGO_ATUAL}}
+SLEEP:{{VAR.DELAY_STEP_MS}}
+
+; ENTER
+KEY:{ENTER}
+SLEEP:{{VAR.DELAY_STEP_MS}}
+
+; F4
+KEY:{F4}
+SLEEP:{{VAR.DELAY_STEP_MS}}
+]
+
+[MACRO]
+NOME=FINALIZAR_PRODUTOR
+SCRIPT=[
+KEY:{F4}
+SLEEP:{{VAR.FINAL_DELAY_F4_MS}}
+
+KEY:{RIGHT}
+SLEEP:{{VAR.FINAL_DELAY_RIGHT_MS}}
+
+KEY:{ENTER}
+SLEEP:{{VAR.FINAL_DELAY_ENTER_MS}}
+]
+
+; ==========================================================
+; TAREFA PRINCIPAL (1 produtor por vez)
+; ==========================================================
+
+[TAREFA]
+NOME=RECEBIMENTO - 1 PRODUTOR POR VEZ
+ATIVO=S
+ESCOPO=PRODUTOR
+QUANDO=STATUS==PENDENTE
+REPETIR=1
+
+SCRIPT=[
+; ---------- Validações (equivalente ao Validate-Producers) ----------
+REQUIRE:NOME
+REQUIRE:STATUS
+REQUIRE:TIPO
+REQUIRE:INSTRUCAO
+
+; NOTAS é lista multi-linha (NOTAS:)
+SKIP_IF_EMPTY:NOTAS
+
+; ---------- Pergunta antes de iniciar este produtor ----------
+ASK:PRODUTOR: {{NOME}} | TIPO={{TIPO}} | INSTRUCAO={{INSTRUCAO}} | NOTAS={{VAR.OBS}}. Iniciar este produtor? (S/N)
+
+; ---------- Decide código PF/PJ ----------
+IF:TIPO==PJ
+SETVAR:CODIGO_ATUAL={{VAR.CODE_PJ}}
+ELSE
+SETVAR:CODIGO_ATUAL={{VAR.CODE_PF}}
+ENDIF
+
+; ---------- Ir ao campo instrução ----------
+CALL:IR_CAMPO_INSTRUCAO
+
+; ---------- Processa cada nota ----------
+FOREACH:NOTAS
+CALL:PROCESSAR_UMA_NOTA
+END
+
+; ---------- Finaliza produtor ----------
+CALL:FINALIZAR_PRODUTOR
+
+; ---------- FUTURO (quando implementarmos salvar status no dados.txt) ----------
+SET:STATUS=CONFIRMADO
+SAVE_DADOS
+
+; ---------- Pergunta para passar para o próximo ----------
+ASK:PASSAR PARA O PROXIMO PRODUTOR? (S/N)
+SLEEP:3000
+]
