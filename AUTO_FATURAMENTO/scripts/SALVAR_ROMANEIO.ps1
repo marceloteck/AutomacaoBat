@@ -170,6 +170,64 @@ if ($lista.Count -eq 0) {
     exit 0
 }
 
+###########
+
+Add-Type -AssemblyName UIAutomationClient
+
+function Test-IsEditableFocusedElement {
+
+    try {
+        $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+        if ($null -eq $focused) { return $false }
+
+        $controlType = $focused.Current.ControlType.ProgrammaticName
+
+        # Tipos comuns de campo editável
+        if ($controlType -match "Edit" -or
+            $controlType -match "Document") {
+            return $true
+        }
+
+        # Verifica se suporta ValuePattern (campo que aceita texto)
+        $pattern = $null
+        if ($focused.TryGetCurrentPattern(
+            [System.Windows.Automation.ValuePattern]::Pattern,
+            [ref]$pattern)) {
+            return $true
+        }
+
+        return $false
+    }
+    catch {
+        return $false
+    }
+}
+
+
+
+function Paste-Text([string]$text) {
+
+    # Espera até o foco estar em campo editável (máx 5s)
+    $timeout = 5000
+    $elapsed = 0
+
+    while (-not (Test-IsEditableFocusedElement)) {
+        Start-Sleep -Milliseconds 100
+        $elapsed += 100
+        if ($elapsed -ge $timeout) {
+            Write-Host "[ERRO] Campo de texto não detectado." -ForegroundColor Red
+            return
+        }
+    }
+
+    Set-Clipboard -Value $text
+    Press-Key("^v")
+}
+
+##########
+
+function Press-Key([string]$k) { [System.Windows.Forms.SendKeys]::SendWait($k) }
+function SleepMs([int]$ms) { Start-Sleep -Milliseconds $ms }
 
 
 Write-Host ""
@@ -178,7 +236,6 @@ Write-Host " AUTOMACAO: F3 -> PEDIDO -> ENTER -> F11" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host "Obs: O NOME fica no clipboard para voce Ctrl+V manualmente." -ForegroundColor Cyan
 Write-Host ""
-
 
 # ================================
 # PEDIR DIRETORIO (ANTES DO LOOP)
@@ -206,104 +263,100 @@ if (-not (Test-Path -LiteralPath $saveDir)) {
 
 $dirPastedOnce = $false
 
-
 # ================================
 # LOOP PRINCIPAL
 # ================================
-Countdown-3s
 foreach ($p in $lista) {
     $nome   = $p.NOME
     $pedido = $p.PEDIDO
+    $instrucao = $p.INSTRUCAO
 
 
-       if($p.status -eq "CONFIRMADO"){
+
+    if($p.status -eq "CONFIRMADO"){
         Write-Host ("[SKIP] PRODUTOR {0}/{1}: {2} ja esta CONFIRMADO - pulando." -f $pIndex, $producers.Count, $p.nome)
         continue
     }
 
+    # Invoke-DoubleClickPos -Name "NOME_DO_CLICK"
+    # Invoke-ClickPos -Name "CLICAR_IMPRIMIR_PEDIDO"
+    # Set-ClipText $saveDir
+    # Paste-Text $saveDir
+    # Invoke-RightClickPos -Name "MENU_OPCOES"
 
     Write-Host ""
     Write-Host ("PRODUTOR: {0}" -f $nome) -ForegroundColor Green
     Write-Host ("PEDIDO:   {0}" -f $pedido) -ForegroundColor Green
 
-<#
     if (-not (Ask-YesNo "Iniciar este produtor? (S/N)")) {
         Write-Host "PULADO." -ForegroundColor Yellow
         continue
     }
-#>
-
-    Start-Sleep -Milliseconds 2000
-    Invoke-ClickPos -Name "FOCAR_NA_TELA_PEDIDO_SLV"
-    Start-Sleep -Milliseconds 1464
-
-    # F3 -> cola pedido -> Enter -> F11
-    Send-Key "{F3}"
-    Send-Key "{F3}"
-    Send-Key "{F3}"
-    Start-Sleep -Milliseconds 1464
-
-    Set-ClipText $pedido
-    Start-Sleep -Milliseconds 1464
-    Send-Key "^v"
-    Start-Sleep -Milliseconds 1464
-    Send-Key "{ENTER}"
-    Start-Sleep -Milliseconds 1464
-
-    Send-Key "{F11}"
-
-    Start-Sleep -Milliseconds 3000
 
 
-Start-Sleep -Milliseconds 1464 
-Invoke-ClickPos -Name "PEDIDO_SALVAR_LEFT_001_36_33"
-Start-Sleep -Milliseconds 1464
-Invoke-ClickPos -Name "PEDIDO_SALVAR_LEFT_002_910_638"
-Start-Sleep -Milliseconds 1464
-Invoke-ClickPos -Name "PEDIDO_SALVAR_LEFT_003_602_750"
-Start-Sleep -Milliseconds 1464
+
+    Invoke-ClickPos -Name "CLICAR_NA_TELA_FOCAR"
+
+    SleepMs 3000
+    Invoke-ClickPos -Name "SALVAR_ROMANEIO_LEFT_001_205_207"
+    SleepMs 84
+    Invoke-DoubleClickPos -Name "SALVAR_ROMANEIO_LEFT_001_205_207"
+    SleepMs 333
+    Press-Key("^a")
+    SleepMs 573
+    Paste-Text $pedido
+    SleepMs 335
+    Press-Key("{TAB}")
+    SleepMs 573
+    Press-Key("{F3}")
+    SleepMs 5393
+    Invoke-ClickPos -Name "SALVAR_ROMANEIO_LEFT_002_781_157"
+    SleepMs 1263
+    Press-Key("{ENTER}")
+    SleepMs 4087
+    Paste-Text $nome
+    SleepMs 1483
+    Press-Key("{ENTER}")
+    SleepMs 2681
+    Invoke-ClickPos -Name "SALVAR_ROMANEIO_LEFT_003_844_479"
+
+
+
+
+
+
+
 
     # ================================
-    # COLAR DIRETORIO SOMENTE 1 VEZ
+    # ABRIR/EXECUTAR TELA NFE
     # ================================
-    if (-not $dirPastedOnce) {
-        Set-ClipText $saveDir
-        Start-Sleep -Milliseconds 1464
-        Send-Key "^v"
-        Start-Sleep -Milliseconds 1464
-        Send-Key "{ENTER}"
-        Start-Sleep -Milliseconds 1464
-        $dirPastedOnce = $true
-    }
-
-    Start-Sleep -Milliseconds 1464
-
-    # ================================
-    # NOME (cola e confirma)
-    # ================================
-    Set-ClipText $nome
-    Start-Sleep -Milliseconds 1464
-    Send-Key "^v"
-    Start-Sleep -Milliseconds 1464
-    Send-Key "{ENTER}"
-
-
-
-    Start-Sleep -Milliseconds 4063
-    Invoke-ClickPos -Name "FECHAR_PEDIDO_LEFT_001_412_39"
-    Start-Sleep -Milliseconds 447
-    Send-Key "{F5}"
-
     
 
 
-
-################################################################################
-    Write-Host "[OK] Produtor finalizado."
-    Write-Host " "
-    Write-Host "##################################"
-    Write-Host "PASSANDO PARA O PROXIMO"
+    # ========================================================
+    # ABRIR/EXECUTAR TELA DOCUMENTO SIMPLIFICADO ANTIGO
+    # ========================================================
+    
 
 
-   # [void](Read-Host "Quando terminar, pressione Enter para o proximo")
+    
+    # ============================================
+    # ABRIR/EXECUTAR TELA ROMANEIO DE ABATE
+    # ============================================
+
+
+  
+
+
+    # ========================================================
+    # COPIAR NOME DO PECUARISTA NA AREA DE TRANSFERENCIA
+    # ========================================================    
+
+
+
+
+
+
+
+    [void](Read-Host "Quando terminar, pressione Enter para o proximo")
 }

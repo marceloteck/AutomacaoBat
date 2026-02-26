@@ -86,10 +86,56 @@ Add-Type -AssemblyName System.Windows.Forms
 function Press-Key([string]$k) { [System.Windows.Forms.SendKeys]::SendWait($k) }
 function SleepMs([int]$ms) { if($ms -gt 0){ Start-Sleep -Milliseconds $ms } }
 
+Add-Type -AssemblyName UIAutomationClient
+
+function Test-IsEditableFocusedElement {
+
+    try {
+        $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+        if ($null -eq $focused) { return $false }
+
+        $controlType = $focused.Current.ControlType.ProgrammaticName
+
+        # Tipos comuns de campo editável
+        if ($controlType -match "Edit" -or
+            $controlType -match "Document") {
+            return $true
+        }
+
+        # Verifica se suporta ValuePattern (campo que aceita texto)
+        $pattern = $null
+        if ($focused.TryGetCurrentPattern(
+            [System.Windows.Automation.ValuePattern]::Pattern,
+            [ref]$pattern)) {
+            return $true
+        }
+
+        return $false
+    }
+    catch {
+        return $false
+    }
+}
+
+
+
 function Paste-Text([string]$text) {
-  if($null -eq $text){ $text = "" }
-  Set-Clipboard -Value $text
-  Press-Key("^v")
+
+    # Espera até o foco estar em campo editável (máx 5s)
+    $timeout = 5000
+    $elapsed = 0
+
+    while (-not (Test-IsEditableFocusedElement)) {
+        Start-Sleep -Milliseconds 100
+        $elapsed += 100
+        if ($elapsed -ge $timeout) {
+            Write-Host "[ERRO] Campo de texto não detectado." -ForegroundColor Red
+            return
+        }
+    }
+
+    Set-Clipboard -Value $text
+    Press-Key("^v")
 }
 
 # ================================
@@ -265,6 +311,9 @@ function Select-PlacaByIndex([int]$index){
 # ================================
 function Run-NFE-Bloco($p){
 
+  Invoke-ClickPos -Name "CADASTRAR_PLACAS_LEFT_001_535_67"
+  SleepMs 639
+
   # F7
   Press-Key("{F7}")
   SleepMs $DELAY_AFTER_F7_MS
@@ -375,6 +424,11 @@ function Run-NFE-Bloco($p){
       Press-Key("{ENTER}")
       SleepMs 120
       Abort-IfNeeded; Fail-IfNeeded
+
+      Press-Key("{F4}")
+      SleepMs $DELAY_AFTER_F4_MS
+      Abort-IfNeeded; Fail-IfNeeded
+
     }
 
     # Finalizacao padrao (igual ao fluxo de 1 nota) - uma vez ao final
@@ -460,6 +514,19 @@ try {
   foreach($p in $ordered){
     $pIndex++
     Abort-IfNeeded
+
+
+    # ================================
+    # IGNORAR PRODUTOR SEM NOTA FISCAL
+    # ================================
+    if(-not $p.notas -or $p.notas.Count -eq 0 -or ($p.notas | Where-Object { $_ -and $_.Trim() -ne "" }).Count -eq 0){
+        Write-Host ""
+        Write-Host ("[SKIP] PRODUTOR {0}/{1}: {2} sem nota fiscal - pulando." -f $pIndex, $producers.Count, $p.nome)
+        continue
+    }
+
+
+
 
     if($p.status -eq "CONFIRMADO"){
       Write-Host ("[SKIP] {0}/{1}: {2} ja CONFIRMADO" -f $pIndex, $ordered.Count, $p.nome) -ForegroundColor DarkGray

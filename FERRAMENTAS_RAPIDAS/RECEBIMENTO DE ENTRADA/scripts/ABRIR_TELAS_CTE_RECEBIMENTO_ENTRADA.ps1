@@ -42,7 +42,9 @@ if ($hWnd -ne [IntPtr]::Zero) {
 # ===============================
 # CHAMADA click_positions.ps1
 # ===============================
-$lib = Join-Path $PSScriptRoot "click_positions.ps1"
+# $lib = Join-Path $PSScriptRoot "click_positions.ps1"
+$lib = "C:\Users\marcelohenrique-cdt\Documents\AUTOMACAO_V1\AUTO_FATURAMENTO\scripts\click_positions.ps1"
+
 if (Test-Path -LiteralPath $lib) {
     . $lib
 } else {
@@ -170,6 +172,64 @@ if ($lista.Count -eq 0) {
     exit 0
 }
 
+###########
+
+Add-Type -AssemblyName UIAutomationClient
+
+function Test-IsEditableFocusedElement {
+
+    try {
+        $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+        if ($null -eq $focused) { return $false }
+
+        $controlType = $focused.Current.ControlType.ProgrammaticName
+
+        # Tipos comuns de campo editável
+        if ($controlType -match "Edit" -or
+            $controlType -match "Document") {
+            return $true
+        }
+
+        # Verifica se suporta ValuePattern (campo que aceita texto)
+        $pattern = $null
+        if ($focused.TryGetCurrentPattern(
+            [System.Windows.Automation.ValuePattern]::Pattern,
+            [ref]$pattern)) {
+            return $true
+        }
+
+        return $false
+    }
+    catch {
+        return $false
+    }
+}
+
+
+
+function Paste-Text([string]$text) {
+
+    # Espera até o foco estar em campo editável (máx 5s)
+    $timeout = 5000
+    $elapsed = 0
+
+    while (-not (Test-IsEditableFocusedElement)) {
+        Start-Sleep -Milliseconds 100
+        $elapsed += 100
+        if ($elapsed -ge $timeout) {
+            Write-Host "[ERRO] Campo de texto não detectado." -ForegroundColor Red
+            return
+        }
+    }
+
+    Set-Clipboard -Value $text
+    Press-Key("^v")
+}
+
+##########
+
+function Press-Key([string]$k) { [System.Windows.Forms.SendKeys]::SendWait($k) }
+function SleepMs([int]$ms) { Start-Sleep -Milliseconds $ms }
 
 
 Write-Host ""
@@ -180,130 +240,35 @@ Write-Host "Obs: O NOME fica no clipboard para voce Ctrl+V manualmente." -Foregr
 Write-Host ""
 
 
-# ================================
-# PEDIR DIRETORIO (ANTES DO LOOP)
-# ================================
-$saveDir = ""
-while ([string]::IsNullOrWhiteSpace($saveDir)) {
-    $saveDir = Read-Host "Informe o DIRETORIO para salvar/imprimir (ex: C:\Pedidos\2026\02)"
-    if ([string]::IsNullOrWhiteSpace($saveDir)) {
-        Write-Host "Diretorio vazio. Tente novamente." -ForegroundColor Yellow
-        continue
-    }
-    $saveDir = $saveDir.Trim().Trim('"')
-}
-
-# Se quiser validar que existe (opcional). Se não existir, cria.
-if (-not (Test-Path -LiteralPath $saveDir)) {
-    try {
-        New-Item -ItemType Directory -Path $saveDir -Force | Out-Null
-        Write-Host "[OK] Diretorio criado: $saveDir" -ForegroundColor Green
-    } catch {
-        Write-Host "[ERRO] Nao consegui criar/usar o diretorio: $saveDir" -ForegroundColor Red
-        exit 2
-    }
-}
-
-$dirPastedOnce = $false
-
 
 # ================================
 # LOOP PRINCIPAL
 # ================================
-Countdown-3s
 foreach ($p in $lista) {
     $nome   = $p.NOME
     $pedido = $p.PEDIDO
+    $instrucao = $p.INSTRUCAO
 
 
-       if($p.status -eq "CONFIRMADO"){
-        Write-Host ("[SKIP] PRODUTOR {0}/{1}: {2} ja esta CONFIRMADO - pulando." -f $pIndex, $producers.Count, $p.nome)
-        continue
-    }
-
+    # Invoke-DoubleClickPos -Name "NOME_DO_CLICK"
+    # Invoke-ClickPos -Name "CLICAR_IMPRIMIR_PEDIDO"
+    # Set-ClipText $saveDir
+    # Paste-Text $saveDir
+    # Invoke-RightClickPos -Name "MENU_OPCOES"
 
     Write-Host ""
     Write-Host ("PRODUTOR: {0}" -f $nome) -ForegroundColor Green
     Write-Host ("PEDIDO:   {0}" -f $pedido) -ForegroundColor Green
 
-<#
     if (-not (Ask-YesNo "Iniciar este produtor? (S/N)")) {
         Write-Host "PULADO." -ForegroundColor Yellow
         continue
     }
-#>
 
-    Start-Sleep -Milliseconds 2000
-    Invoke-ClickPos -Name "FOCAR_NA_TELA_PEDIDO_SLV"
-    Start-Sleep -Milliseconds 1464
-
-    # F3 -> cola pedido -> Enter -> F11
-    Send-Key "{F3}"
-    Send-Key "{F3}"
-    Send-Key "{F3}"
-    Start-Sleep -Milliseconds 1464
-
-    Set-ClipText $pedido
-    Start-Sleep -Milliseconds 1464
-    Send-Key "^v"
-    Start-Sleep -Milliseconds 1464
-    Send-Key "{ENTER}"
-    Start-Sleep -Milliseconds 1464
-
-    Send-Key "{F11}"
-
-    Start-Sleep -Milliseconds 3000
-
-
-Start-Sleep -Milliseconds 1464 
-Invoke-ClickPos -Name "PEDIDO_SALVAR_LEFT_001_36_33"
-Start-Sleep -Milliseconds 1464
-Invoke-ClickPos -Name "PEDIDO_SALVAR_LEFT_002_910_638"
-Start-Sleep -Milliseconds 1464
-Invoke-ClickPos -Name "PEDIDO_SALVAR_LEFT_003_602_750"
-Start-Sleep -Milliseconds 1464
-
-    # ================================
-    # COLAR DIRETORIO SOMENTE 1 VEZ
-    # ================================
-    if (-not $dirPastedOnce) {
-        Set-ClipText $saveDir
-        Start-Sleep -Milliseconds 1464
-        Send-Key "^v"
-        Start-Sleep -Milliseconds 1464
-        Send-Key "{ENTER}"
-        Start-Sleep -Milliseconds 1464
-        $dirPastedOnce = $true
-    }
-
-    Start-Sleep -Milliseconds 1464
-
-    # ================================
-    # NOME (cola e confirma)
-    # ================================
-    Set-ClipText $nome
-    Start-Sleep -Milliseconds 1464
-    Send-Key "^v"
-    Start-Sleep -Milliseconds 1464
-    Send-Key "{ENTER}"
-
-
-
-    Start-Sleep -Milliseconds 4063
-    Invoke-ClickPos -Name "FECHAR_PEDIDO_LEFT_001_412_39"
-    Start-Sleep -Milliseconds 447
-    Send-Key "{F5}"
 
     
 
 
 
-################################################################################
-    Write-Host "[OK] Produtor finalizado."
-    Write-Host " "
-    Write-Host "##################################"
-    Write-Host "PASSANDO PARA O PROXIMO"
-
-
-   # [void](Read-Host "Quando terminar, pressione Enter para o proximo")
+    [void](Read-Host "Quando terminar, pressione Enter para o proximo")
 }

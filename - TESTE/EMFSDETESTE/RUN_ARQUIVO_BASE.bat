@@ -9,8 +9,7 @@ echo.
 echo Abra o sistema e deixe a tela pronta.
 echo.
 
-powershell -NoProfile -ExecutionPolicy Bypass -STA -File "%~dp0scripts\SALVAR_AC_PECUARISTA.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -STA -File "%~dp0scripts\COMPLEMENTO_DE_ABATE.ps1"
 
 echo.
 pause
-exit /b 0

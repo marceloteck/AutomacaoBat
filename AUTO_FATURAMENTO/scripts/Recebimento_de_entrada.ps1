@@ -3,6 +3,50 @@ param(
   [string]$InputFile
 )
 
+
+# === FIXAR CONSOLE NO TOPO (mais confiavel) ===
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+
+public static class WinTop {
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr GetConsoleWindow();
+
+    [DllImport("user32.dll", SetLastError=true)]
+    public static extern bool SetWindowPos(
+        IntPtr hWnd,
+        IntPtr hWndInsertAfter,
+        int X, int Y, int cx, int cy,
+        uint uFlags
+    );
+}
+"@
+
+$HWND_TOPMOST   = [IntPtr](-1)
+$SWP_NOMOVE     = 0x0002
+
+
+$SWP_NOSIZE     = 0x0001
+$SWP_SHOWWINDOW = 0x0040
+
+# espera o console existir
+$hWnd = [IntPtr]::Zero
+for ($i=0; $i -lt 25 -and $hWnd -eq [IntPtr]::Zero; $i++) {
+    Start-Sleep -Milliseconds 200
+    $hWnd = [WinTop]::GetConsoleWindow()
+}
+
+if ($hWnd -ne [IntPtr]::Zero) {
+    [void][WinTop]::SetWindowPos($hWnd, $HWND_TOPMOST, 0,0,0,0, $SWP_NOMOVE -bor $SWP_NOSIZE -bor $SWP_SHOWWINDOW)
+} else {
+    Write-Host "[AVISO] Nao consegui pegar a janela do console para fixar no topo."
+}
+
+
+
+
+
 $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
@@ -51,9 +95,56 @@ Add-Type -AssemblyName System.Windows.Forms
 function Press-Key([string]$k) { [System.Windows.Forms.SendKeys]::SendWait($k) }
 function SleepMs([int]$ms) { Start-Sleep -Milliseconds $ms }
 
+Add-Type -AssemblyName UIAutomationClient
+
+function Test-IsEditableFocusedElement {
+
+    try {
+        $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+        if ($null -eq $focused) { return $false }
+
+        $controlType = $focused.Current.ControlType.ProgrammaticName
+
+        # Tipos comuns de campo editável
+        if ($controlType -match "Edit" -or
+            $controlType -match "Document") {
+            return $true
+        }
+
+        # Verifica se suporta ValuePattern (campo que aceita texto)
+        $pattern = $null
+        if ($focused.TryGetCurrentPattern(
+            [System.Windows.Automation.ValuePattern]::Pattern,
+            [ref]$pattern)) {
+            return $true
+        }
+
+        return $false
+    }
+    catch {
+        return $false
+    }
+}
+
+
+
 function Paste-Text([string]$text) {
-  Set-Clipboard -Value $text
-  Press-Key("^v")
+
+    # Espera até o foco estar em campo editável (máx 5s)
+    $timeout = 5000
+    $elapsed = 0
+
+    while (-not (Test-IsEditableFocusedElement)) {
+        Start-Sleep -Milliseconds 100
+        $elapsed += 100
+        if ($elapsed -ge $timeout) {
+            Write-Host "[ERRO] Campo de texto não detectado." -ForegroundColor Red
+            return
+        }
+    }
+
+    Set-Clipboard -Value $text
+    Press-Key("^v")
 }
 
 # ================================
@@ -223,13 +314,13 @@ try {
   }
 
   $errors = Validate-Producers $producers
-  if($errors.Count -gt 0){
-    Write-Host "=========================================="
-    Write-Host "ERROS NO ARQUIVO. Corrija antes de rodar:"
-    Write-Host "=========================================="
-    $errors | ForEach-Object { Write-Host " - $_" }
-    exit 2
-  }
+  # if($errors.Count -gt 0){
+  #   Write-Host "=========================================="
+  #   Write-Host "ERROS NO ARQUIVO. Corrija antes de rodar:"
+  #   Write-Host "=========================================="
+  #   $errors | ForEach-Object { Write-Host " - $_" }
+  #   exit 2
+  # }
 
   $totalNotas = ($producers | ForEach-Object { $_.notas.Count } | Measure-Object -Sum).Sum
   Write-Host "=========================================="
@@ -255,6 +346,15 @@ try {
     $pIndex++
     Abort-IfNeeded
 
+    # ================================
+    # IGNORAR PRODUTOR SEM NOTA FISCAL
+    # ================================
+    if(-not $p.notas -or $p.notas.Count -eq 0 -or ($p.notas | Where-Object { $_ -and $_.Trim() -ne "" }).Count -eq 0){
+        Write-Host ""
+        Write-Host ("[SKIP] PRODUTOR {0}/{1}: {2} sem nota fiscal - pulando." -f $pIndex, $producers.Count, $p.nome)
+        continue
+    }
+
     $code = if($p.tipo -eq "PJ") { $CODE_PJ } else { $CODE_PF }
 
     Invoke-ClickPos -Name "ABRIR_TELA_RECEBIMENTODEENTRADA_ERP"
@@ -267,8 +367,8 @@ try {
     Write-Host ""
 
     if($p.status -eq "CONFIRMADO"){
-      Write-Host ("[SKIP] PRODUTOR {0}/{1}: {2} ja esta CONFIRMADO - pulando." -f $pIndex, $producers.Count, $p.nome)
-      continue
+        Write-Host ("[SKIP] PRODUTOR {0}/{1}: {2} ja esta CONFIRMADO - pulando." -f $pIndex, $producers.Count, $p.nome)
+        continue
     }
 
     # Vai para campo de instrucao
@@ -283,7 +383,7 @@ try {
     Pause-IfNotTextInput -Message "Clique no campo correto antes de continuar."
 
     Press-Key($p.instrucao)
-    SleepMs $DELAY_AFTER_INSTRUCAO_MS
+    SleepMs 100
 
     Press-Key("{TAB}")
     SleepMs $DELAY_AFTER_TAB_MS
@@ -292,30 +392,32 @@ try {
     # Processa notas
     $i = 0
     foreach($ch in $p.notas){
-      $i++
-      Abort-IfNeeded
+        if(-not $ch -or $ch.Trim() -eq ""){ continue }
 
-      Paste-Text $ch
-      SleepMs $DELAY_AFTER_PASTE_MS
+        $i++
+        Abort-IfNeeded
 
-      Press-Key("{TAB}")
-      SleepMs $DELAY_STEP_MS
+        Paste-Text $ch
+        SleepMs 100
 
-      Press-Key($code)
-      SleepMs $DELAY_STEP_MS
+        Press-Key("{TAB}")
+        SleepMs $DELAY_STEP_MS
 
-      Press-Key("{ENTER}")
-      SleepMs 3000
+        Press-Key($code)
+        SleepMs $DELAY_STEP_MS
 
-      Press-Key("{F4}")
-      SleepMs $DELAY_STEP_MS
+        Press-Key("{ENTER}")
+        SleepMs 3000
 
-      Write-Host ("  [OK] {0}/{1} gravado." -f $i, $p.notas.Count)
+        Press-Key("{F4}")
+        SleepMs $DELAY_STEP_MS
+
+        Write-Host ("  [OK] {0}/{1} gravado." -f $i, $p.notas.Count)
     }
 
     Abort-IfNeeded
 
-    # Confirma/finaliza produtor: F4 -> RIGHT -> ENTER
+    # Confirma/finaliza produtor
     Press-Key("{F4}")
     SleepMs $FINAL_DELAY_F4_MS
 
@@ -327,27 +429,26 @@ try {
 
     Write-Host "[OK] Produtor finalizado."
 
-    # Marca status e salva para nao repetir na proxima execucao
     $p.status = "CONFIRMADO"
     Save-Producers -path $InputFile -producers $producers
     Write-Host "[OK] STATUS atualizado para CONFIRMADO no notasNFE."
 
     if($pIndex -lt $producers.Count){
-      Write-Host ""
-      if(-not (Ask-YesNo "PASSAR PARA O PROXIMO PRODUTOR? (S/N)")){
-        Write-Host "Parado pelo usuario."
-        exit 3
-      }
-      Start-Sleep -Seconds 3
+        Write-Host ""
+        if(-not (Ask-YesNo "PASSAR PARA O PROXIMO PRODUTOR? (S/N)")){
+            Write-Host "Parado pelo usuario."
+            exit 3
+        }
+        Start-Sleep -Seconds 3
     }
-  }
+}
 
-  Write-Host ""
-  Write-Host "[OK] Processo concluido."
-  exit 0
+Write-Host ""
+Write-Host "[OK] Processo concluido."
+exit 0
 
 } catch {
-  Write-Host ""
-  Write-Host ("[ERRO] {0}" -f $_.Exception.Message)
-  exit 3
+    Write-Host ""
+    Write-Host ("[ERRO] {0}" -f $_.Exception.Message)
+    exit 3
 }

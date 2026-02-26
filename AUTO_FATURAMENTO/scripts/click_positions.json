@@ -1,17 +1,437 @@
 ﻿{
+    "CLICAR_AC_IMPUT_ROMANEIO_PEDIDO":  {
+                                            "x":  198,
+                                            "y":  204,
+                                            "savedAt":  "2026-02-23T20:24:49"
+                                        },
+    "COPIAR_N_FORMULARIO":  {
+                                "x":  218,
+                                "y":  402,
+                                "savedAt":  "2026-02-23T20:09:28"
+                            },
+    "CLICAR_COPIARFORM_NFE":  {
+                                  "x":  280,
+                                  "y":  416,
+                                  "savedAt":  "2026-02-23T20:47:39"
+                              },
+    "SELECIONAR_FORM_NFE":  {
+                                "x":  222,
+                                "y":  399,
+                                "savedAt":  "2026-02-23T20:47:21"
+                            },
+    "SALVAR_ACER_LEFT_024_993_875":  {
+                                         "x":  993,
+                                         "y":  875,
+                                         "savedAt":  "2026-02-23T20:59:34"
+                                     },
+    "CLICAR_INPUT_COLAR_INSTRUCAO_AC_NFE":  {
+                                                "x":  149,
+                                                "y":  233,
+                                                "savedAt":  "2026-02-23T20:08:26"
+                                            },
+    "CLICAR_ABA_MUDAR_CARGA":  {
+                                   "x":  48,
+                                   "y":  116,
+                                   "savedAt":  "2026-02-24T17:02:38"
+                               },
+    "FOCAR_IMPUT_FILTRO":  {
+                               "x":  207,
+                               "y":  259,
+                               "savedAt":  "2026-02-23T18:05:35"
+                           },
+    "ATUALIZAR_DATA01_AC_NFE":  {
+                                    "x":  151,
+                                    "y":  160,
+                                    "savedAt":  "2026-02-23T20:07:58"
+                                },
+    "SALVAR_ACER_LEFT_011_976_76":  {
+                                        "x":  976,
+                                        "y":  76,
+                                        "savedAt":  "2026-02-23T20:58:37"
+                                    },
+    "SALVAR_ACER_LEFT_004_757_420":  {
+                                         "x":  757,
+                                         "y":  420,
+                                         "savedAt":  "2026-02-23T20:56:55"
+                                     },
+    "SALVAR_ACER_LEFT_006_219_225":  {
+                                         "x":  219,
+                                         "y":  225,
+                                         "savedAt":  "2026-02-23T20:57:06"
+                                     },
+    "SALVAR_ACER_LEFT_016_1009_68":  {
+                                         "x":  1009,
+                                         "y":  68,
+                                         "savedAt":  "2026-02-23T20:59:02"
+                                     },
+    "SALVAR_ACER_LEFT_005_770_452":  {
+                                         "x":  770,
+                                         "y":  452,
+                                         "savedAt":  "2026-02-23T20:56:59"
+                                     },
+    "CLICAR_INPUT_MUDAR_CARGA":  {
+                                     "x":  160,
+                                     "y":  368,
+                                     "savedAt":  "2026-02-24T17:02:42"
+                                 },
+    "SALVAR_ACER_LEFT_017_43_34":  {
+                                       "x":  43,
+                                       "y":  34,
+                                       "savedAt":  "2026-02-23T20:59:08"
+                                   },
+    "SALVAR_ACER_LEFT_029_948_719":  {
+                                         "x":  948,
+                                         "y":  719,
+                                         "savedAt":  "2026-02-23T21:00:00"
+                                     },
+    "CLICAR_AC_ABRIR_ROMANEIO":  {
+                                     "x":  1249,
+                                     "y":  65,
+                                     "savedAt":  "2026-02-23T20:23:07"
+                                 },
+    "SELECIONAR_NAO_FATURADO":  {
+                                    "x":  148,
+                                    "y":  234,
+                                    "savedAt":  "2026-02-23T18:05:16"
+                                },
+    "SALVAR_ACER_LEFT_014_1257_59":  {
+                                         "x":  1257,
+                                         "y":  59,
+                                         "savedAt":  "2026-02-23T20:58:53"
+                                     },
+    "SELECIONAR_PRIMEIRA_PLACA":  {
+                                      "x":  141,
+                                      "y":  452,
+                                      "savedAt":  "2026-02-23T11:29:36"
+                                  },
+    "SALVAR_ROMANEIO_LEFT_001_205_207":  {
+                                             "x":  205,
+                                             "y":  207,
+                                             "savedAt":  "2026-02-24T12:10:28"
+                                         },
+    "SALVAR_ACER_LEFT_019_404_32":  {
+                                        "x":  404,
+                                        "y":  32,
+                                        "savedAt":  "2026-02-23T20:59:13"
+                                    },
     "CLICKDUAS_VEZES":  {
                             "x":  728,
                             "y":  741,
                             "savedAt":  "2026-02-22T16:16:04"
                         },
+    "CADASTRAR_PLACAS_LEFT_002_134_456":  {
+                                              "x":  134,
+                                              "y":  456,
+                                              "savedAt":  "2026-02-23T13:22:57"
+                                          },
+    "CLICAR_IMPRIMIR_PEDIDO_OK":  {
+                                      "x":  939,
+                                      "y":  637,
+                                      "savedAt":  "2026-02-24T11:26:59"
+                                  },
+    "CLICAR_FILTRO_FATURADO_OUNAO":  {
+                                         "x":  183,
+                                         "y":  209,
+                                         "savedAt":  "2026-02-23T17:55:54"
+                                     },
+    "CLICAR_FATURAMENTO_DATA2":  {
+                                     "x":  242,
+                                     "y":  295,
+                                     "savedAt":  "2026-02-23T17:57:13"
+                                 },
+    "SALVAR_ACER_LEFT_008_228_396":  {
+                                         "x":  228,
+                                         "y":  396,
+                                         "savedAt":  "2026-02-23T20:58:33"
+                                     },
+    "SALVAR_ACER_RIGHT_009_228_396":  {
+                                          "x":  228,
+                                          "y":  396,
+                                          "savedAt":  "2026-02-23T20:58:34"
+                                      },
+    "SALVAR_ACER_LEFT_015_192_205":  {
+                                         "x":  192,
+                                         "y":  205,
+                                         "savedAt":  "2026-02-23T20:58:55"
+                                     },
+    "PEDIDO_SALVAR_LEFT_001_36_33":  {
+                                         "x":  36,
+                                         "y":  33,
+                                         "savedAt":  "2026-02-24T11:38:26"
+                                     },
+    "ABRIR_TELA_AC_ROMANEIO_ERP":  {
+                                       "x":  1260,
+                                       "y":  68,
+                                       "savedAt":  "2026-02-23T20:09:49"
+                                   },
+    "PEDIDO_SALVAR_LEFT_002_910_638":  {
+                                           "x":  910,
+                                           "y":  638,
+                                           "savedAt":  "2026-02-24T11:38:27"
+                                       },
+    "SALVAR_ACER_LEFT_003_773_270":  {
+                                         "x":  773,
+                                         "y":  270,
+                                         "savedAt":  "2026-02-23T20:56:46"
+                                     },
+    "SALVAR_ACER_LEFT_007_701_74":  {
+                                        "x":  701,
+                                        "y":  74,
+                                        "savedAt":  "2026-02-23T20:58:31"
+                                    },
+    "CLICAR_INSTRUCAO":  {
+                             "x":  166,
+                             "y":  296,
+                             "savedAt":  "2026-02-23T18:07:28"
+                         },
+    "SALVAR_ACER_LEFT_027_711_242":  {
+                                         "x":  711,
+                                         "y":  242,
+                                         "savedAt":  "2026-02-23T20:59:42"
+                                     },
+    "clicar_selecionar_form_nfe":  {
+                                       "x":  204,
+                                       "y":  399,
+                                       "savedAt":  "2026-02-24T17:40:57"
+                                   },
+    "CLICAR_FILTRO_STATUS_AC_NFE":  {
+                                        "x":  167,
+                                        "y":  262,
+                                        "savedAt":  "2026-02-23T20:08:05"
+                                    },
+    "CLICAR_IMPRESSORA_ACC":  {
+                                  "x":  18,
+                                  "y":  30,
+                                  "savedAt":  "2026-02-23T20:50:08"
+                              },
+    "SALVAR_ACER_LEFT_028_815_312":  {
+                                         "x":  815,
+                                         "y":  312,
+                                         "savedAt":  "2026-02-23T20:59:58"
+                                     },
+    "FECHAR_PEDIDO_LEFT_001_412_39":  {
+                                          "x":  412,
+                                          "y":  39,
+                                          "savedAt":  "2026-02-24T11:47:46"
+                                      },
+    "SALVAR_ACER_LEFT_010_254_407":  {
+                                         "x":  254,
+                                         "y":  407,
+                                         "savedAt":  "2026-02-23T20:58:35"
+                                     },
+    "CLICAR_AC_INPUT_DOC_SIMPL_COLAR_INSTRUCAO":  {
+                                                      "x":  909,
+                                                      "y":  340,
+                                                      "savedAt":  "2026-02-23T20:08:57"
+                                                  },
+    "CLICAR_INPUT_FASE7OR3":  {
+                                  "x":  145,
+                                  "y":  160,
+                                  "savedAt":  "2026-02-23T17:55:43"
+                              },
     "ABRIR_TELA_RECEBIMENTODEENTRADA_ERP":  {
-                                                "x":  207,
-                                                "y":  465,
-                                                "savedAt":  "2026-02-22T22:27:43"
+                                                "x":  143,
+                                                "y":  66,
+                                                "savedAt":  "2026-02-23T11:46:47"
                                             },
+    "ABRIR_TELA_FATURAMENTO_ERP":  {
+                                       "x":  1029,
+                                       "y":  65,
+                                       "savedAt":  "2026-02-23T19:27:17"
+                                   },
+    "ABRIR_TELA_AC_NFE_ERP":  {
+                                  "x":  769,
+                                  "y":  67,
+                                  "savedAt":  "2026-02-23T20:07:40"
+                              },
+    "CLICAR_NA_TELA_FOCAR":  {
+                                 "x":  1026,
+                                 "y":  366,
+                                 "savedAt":  "2026-02-24T12:23:05"
+                             },
+    "SALVAR_ACER_LEFT_023_453_439":  {
+                                         "x":  453,
+                                         "y":  439,
+                                         "savedAt":  "2026-02-23T20:59:22"
+                                     },
+    "SALVAR_ACER_LEFT_018_900_637":  {
+                                         "x":  900,
+                                         "y":  637,
+                                         "savedAt":  "2026-02-23T20:59:11"
+                                     },
+    "SALVAR_ROMANEIO_LEFT_003_844_479":  {
+                                             "x":  844,
+                                             "y":  479,
+                                             "savedAt":  "2026-02-24T12:10:44"
+                                         },
+    "CLICAR_AC_FILTRO_SIMPLIF_DOC_SEQ":  {
+                                             "x":  758,
+                                             "y":  414,
+                                             "savedAt":  "2026-02-23T20:09:12"
+                                         },
+    "CLICAR_IMPRIMIR_Imput_colar_dir_pasta":  {
+                                                  "x":  771,
+                                                  "y":  739,
+                                                  "savedAt":  "2026-02-24T11:27:06"
+                                              },
+    "CLICAR_FATURAMENTO_DATA1":  {
+                                     "x":  145,
+                                     "y":  306,
+                                     "savedAt":  "2026-02-23T17:57:18"
+                                 },
+    "SALVAR_ACER_LEFT_022_700_65":  {
+                                        "x":  700,
+                                        "y":  65,
+                                        "savedAt":  "2026-02-23T20:59:20"
+                                    },
+    "SALVAR_ACER_LEFT_025_787_736":  {
+                                         "x":  787,
+                                         "y":  736,
+                                         "savedAt":  "2026-02-23T20:59:35"
+                                     },
+    "FOCAR_NA_TELA_PEDIDO_SLV":  {
+                                     "x":  1304,
+                                     "y":  316,
+                                     "savedAt":  "2026-02-24T11:56:59"
+                                 },
+    "CLICAR_FATURAMENTO_DATA_principal":  {
+                                              "x":  150,
+                                              "y":  185,
+                                              "savedAt":  "2026-02-23T18:10:47"
+                                          },
+    "SALVAR_ACER_LEFT_001_136_233":  {
+                                         "x":  136,
+                                         "y":  233,
+                                         "savedAt":  "2026-02-23T20:56:37"
+                                     },
+    "ATUALIZAR_DATA02_AC_NFE":  {
+                                    "x":  248,
+                                    "y":  163,
+                                    "savedAt":  "2026-02-23T20:07:53"
+                                },
+    "PEDIDO_SALVAR_LEFT_003_602_750":  {
+                                           "x":  602,
+                                           "y":  750,
+                                           "savedAt":  "2026-02-24T11:38:28"
+                                       },
+    "fechar_tela_impr_pedido":  {
+                                    "x":  406,
+                                    "y":  30,
+                                    "savedAt":  "2026-02-24T11:27:17"
+                                },
+    "CLICAR_iMPUT_DOC_SIMPL_COD2":  {
+                                        "x":  270,
+                                        "y":  224,
+                                        "savedAt":  "2026-02-23T20:47:56"
+                                    },
+    "CLICAR_ADD_PLACAS_CONTRATACAO_VEICULO":  {
+                                                  "x":  668,
+                                                  "y":  455,
+                                                  "savedAt":  "2026-02-23T15:37:09"
+                                              },
+    "FECHAR_TELA_DO_FRETE_CARREGANDO":  {
+                                            "x":  329,
+                                            "y":  84,
+                                            "savedAt":  "2026-02-23T15:55:56"
+                                        },
+    "SALVAR_ACER_LEFT_013_337_313":  {
+                                         "x":  337,
+                                         "y":  313,
+                                         "savedAt":  "2026-02-23T20:58:49"
+                                     },
+    "CLICAR_IMPRIMIR_PEDIDO":  {
+                                   "x":  35,
+                                   "y":  33,
+                                   "savedAt":  "2026-02-24T11:26:51"
+                               },
+    "FOCAR_NA_TELA_CADASTRAR_FRETE":  {
+                                          "x":  883,
+                                          "y":  285,
+                                          "savedAt":  "2026-02-24T15:31:47"
+                                      },
+    "CADASTRAR_PLACAS_LEFT_001_535_67":  {
+                                             "x":  535,
+                                             "y":  67,
+                                             "savedAt":  "2026-02-23T13:22:44"
+                                         },
     "NOME_DO_CLICK":  {
                           "x":  559,
                           "y":  460,
                           "savedAt":  "2026-02-22T22:58:56"
-                      }
+                      },
+    "ABRIR_FILTRO_COLAR_INSTRUCAO":  {
+                                         "x":  141,
+                                         "y":  192,
+                                         "savedAt":  "2026-02-23T19:36:09"
+                                     },
+    "CLICAR_AC_ABA_ROMANEIO_PEDIDO":  {
+                                          "x":  42,
+                                          "y":  120,
+                                          "savedAt":  "2026-02-23T20:24:40"
+                                      },
+    "CLICAR_IMPRESSORA_ACC_OOK":  {
+                                      "x":  912,
+                                      "y":  643,
+                                      "savedAt":  "2026-02-23T20:50:19"
+                                  },
+    "SALVAR_ACER_LEFT_026_799_765":  {
+                                         "x":  799,
+                                         "y":  765,
+                                         "savedAt":  "2026-02-23T20:59:36"
+                                     },
+    "SALVAR_ACER_LEFT_021_234_154":  {
+                                         "x":  234,
+                                         "y":  154,
+                                         "savedAt":  "2026-02-23T20:59:19"
+                                     },
+    "CLICAR_DOC_N16_ABRIR":  {
+                                 "x":  755,
+                                 "y":  455,
+                                 "savedAt":  "2026-02-23T20:09:17"
+                             },
+    "SALVAR_ACER_LEFT_020_1226_58":  {
+                                         "x":  1226,
+                                         "y":  58,
+                                         "savedAt":  "2026-02-23T20:59:17"
+                                     },
+    "clicar_imput_n2_doc_simplificado":  {
+                                             "x":  196,
+                                             "y":  230,
+                                             "savedAt":  "2026-02-24T17:36:27"
+                                         },
+    "ABRIR_TELA_CONTRATACAO_VEICULO_ERP":  {
+                                               "x":  622,
+                                               "y":  62,
+                                               "savedAt":  "2026-02-23T11:29:21"
+                                           },
+    "ABRIR_TELA_CTE_ERP":  {
+                               "x":  1155,
+                               "y":  67,
+                               "savedAt":  "2026-02-23T17:54:11"
+                           },
+    "SALVAR_ACER_LEFT_002_981_63":  {
+                                        "x":  981,
+                                        "y":  63,
+                                        "savedAt":  "2026-02-23T20:56:45"
+                                    },
+    "CLICAR_FILTRO_ESCOLHER_ARPOVADO_AC_NFE":  {
+                                                   "x":  137,
+                                                   "y":  355,
+                                                   "savedAt":  "2026-02-23T20:08:19"
+                                               },
+    "SALVAR_ACER_LEFT_012_519_229":  {
+                                         "x":  519,
+                                         "y":  229,
+                                         "savedAt":  "2026-02-23T20:58:38"
+                                     },
+    "ABRIR_TELA_AC_DOCUMENTO_SIMPLIFICADO_ERP":  {
+                                                     "x":  1010,
+                                                     "y":  66,
+                                                     "savedAt":  "2026-02-23T20:08:43"
+                                                 },
+    "SALVAR_ROMANEIO_LEFT_002_781_157":  {
+                                             "x":  781,
+                                             "y":  157,
+                                             "savedAt":  "2026-02-24T12:10:34"
+                                         }
 }

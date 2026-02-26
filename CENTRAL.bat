@@ -51,7 +51,7 @@ rem Pasta de faturamento (mes atual)
 if /i "%OP%"=="F"  call :RUN "O:\COMPRA DE GADO\ACERTOS\2026\2 - FEVEREIRO 2026"
 
 if "%OP%"=="1"  call :RUN "%BASE%\AC. CONTABIL\processo_acertos_CONTABIL.cmd"
-if "%OP%"=="2"  call :RUN "%BASE%\IMPRESSAO_PRO\EXECUTAR_IMPRESSAO_AUTO_PF_PJ.bat"
+if "%OP%"=="2"  call :RUN "%BASE%\IMPRESSAO_PRO\EXECUTAR_IMPRESSAO.bat"
 
 if "%OP%"=="3"  call :RUN "%BASE%\SCRCPY\copiar_para_jbs_interativo.bat"
 if "%OP%"=="4"  call :RUN_OPEN "%BASE%\SCRCPY\copiar_pasta_mobile_pc DESKTOP MOBILE.bat"

@@ -170,9 +170,56 @@ Add-Type -AssemblyName System.Windows.Forms
 function Press-Key([string]$k) { [System.Windows.Forms.SendKeys]::SendWait($k) }
 function SleepMs([int]$ms) { Start-Sleep -Milliseconds $ms }
 
+Add-Type -AssemblyName UIAutomationClient
+
+function Test-IsEditableFocusedElement {
+
+    try {
+        $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+        if ($null -eq $focused) { return $false }
+
+        $controlType = $focused.Current.ControlType.ProgrammaticName
+
+        # Tipos comuns de campo editável
+        if ($controlType -match "Edit" -or
+            $controlType -match "Document") {
+            return $true
+        }
+
+        # Verifica se suporta ValuePattern (campo que aceita texto)
+        $pattern = $null
+        if ($focused.TryGetCurrentPattern(
+            [System.Windows.Automation.ValuePattern]::Pattern,
+            [ref]$pattern)) {
+            return $true
+        }
+
+        return $false
+    }
+    catch {
+        return $false
+    }
+}
+
+
+
 function Paste-Text([string]$text) {
-  Set-Clipboard -Value $text
-  Press-Key("^v")
+
+    # Espera até o foco estar em campo editável (máx 5s)
+    $timeout = 5000
+    $elapsed = 0
+
+    while (-not (Test-IsEditableFocusedElement)) {
+        Start-Sleep -Milliseconds 100
+        $elapsed += 100
+        if ($elapsed -ge $timeout) {
+            Write-Host "[ERRO] Campo de texto não detectado." -ForegroundColor Red
+            return
+        }
+    }
+
+    Set-Clipboard -Value $text
+    Press-Key("^v")
 }
 
 
@@ -215,38 +262,57 @@ Write-Host ("FASE selecionada: {0}" -f $TipoFaturamento) -ForegroundColor Green
 # ================================
 # FLUXO ERP
 # ================================
+
+
 Invoke-ClickPos -Name "ABRIR_TELA_FATURAMENTO_ERP"
-SleepMs 200
+SleepMs 900
 
 Invoke-ClickPos -Name "CLICAR_INPUT_FASE7OR3"
-SleepMs 150
+SleepMs 900
 
 Press-Key("^a")     # limpa o campo
-SleepMs 50
+SleepMs 900
 
 Paste-Text $TipoFaturamento
-SleepMs 150
+SleepMs 350
 
 Invoke-ClickPos -Name "CLICAR_FILTRO_FATURADO_OUNAO"
-SleepMs 100
+SleepMs 900
 Invoke-ClickPos -Name "SELECIONAR_NAO_FATURADO"
-SleepMs 150
+SleepMs 900
 
+Press-Key("{F3}")
+
+pause
+
+<#
+Invoke-DoubleClickPos -Name "CLICAR_FATURAMENTO_DATA_principal"
+
+SleepMs 1000
 
 Invoke-DoubleClickPos -Name "CLICAR_FATURAMENTO_DATA2"
-SleepMs 150
+SleepMs 1000
 Invoke-DoubleClickPos -Name "CLICAR_FATURAMENTO_DATA1"
 
+SleepMs 2000
+
+Invoke-ClickPos -Name "ABRIR_TELA_FATURAMENTO_ERP"
+SleepMs 2000
 
 Press-Key("{F3}")
 
 
-Countdown -Seconds 2
+Countdown -Seconds 6
 
 Invoke-ClickPos -Name "ABRIR_FILTRO_COLAR_INSTRUCAO"
-SleepMs 200
+SleepMs 50
+Invoke-ClickPos -Name "ABRIR_FILTRO_COLAR_INSTRUCAO"
+SleepMs 3000
 Invoke-ClickPos -Name "FOCAR_IMPUT_FILTRO"
+SleepMs 1000
+#>
 
+Countdown -Seconds 6
 foreach ($p in $lista) {
 
     $nome = $p.NOME
@@ -256,18 +322,18 @@ foreach ($p in $lista) {
     Write-Host ("PRODUTOR: {0}" -f $nome) -ForegroundColor Green
     Write-Host ("INSTRUCAO: {0}" -f $instrucao) -ForegroundColor Green
 
-    # Copia
-    #Set-ClipText $instrucao
-    #Set-ClipText $instrucao
+    Set-Clipboard -Value $instrucao
+    SleepMs 60
+    Press-Key("^v")
 
-    Press-Key("^A")
-    Paste-Text $instrucao
     Press-Key("{ENTER}")
     SleepMs 30
     Invoke-ClickPos -Name "CLICAR_INSTRUCAO"
 
     Start-Sleep 1
     Press-Key("+{TAB}")
+    SleepMs 30
+    Press-Key("^a")
 
 
     # Espera pra voce colar no sistema

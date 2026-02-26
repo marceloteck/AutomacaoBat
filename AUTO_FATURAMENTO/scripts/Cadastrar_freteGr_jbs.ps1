@@ -60,11 +60,86 @@ Add-Type -AssemblyName System.Windows.Forms
 function Press-Key([string]$k) { [System.Windows.Forms.SendKeys]::SendWait($k) }
 function SleepMs([int]$ms) { Start-Sleep -Milliseconds $ms }
 
+Add-Type -AssemblyName UIAutomationClient
+
+function Test-IsEditableFocusedElement {
+
+    try {
+        $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+        if ($null -eq $focused) { return $false }
+
+        $controlType = $focused.Current.ControlType.ProgrammaticName
+
+        # Tipos comuns de campo editável
+        if ($controlType -match "Edit" -or
+            $controlType -match "Document") {
+            return $true
+        }
+
+        # Verifica se suporta ValuePattern (campo que aceita texto)
+        $pattern = $null
+        if ($focused.TryGetCurrentPattern(
+            [System.Windows.Automation.ValuePattern]::Pattern,
+            [ref]$pattern)) {
+            return $true
+        }
+
+        return $false
+    }
+    catch {
+        return $false
+    }
+}
+
+
+
 function Paste-Text([string]$text) {
-    if ($null -eq $text) { $text = "" }
+
+    # Espera até o foco estar em campo editável (máx 5s)
+    $timeout = 5000
+    $elapsed = 0
+
+    while (-not (Test-IsEditableFocusedElement)) {
+        Start-Sleep -Milliseconds 100
+        $elapsed += 100
+        if ($elapsed -ge $timeout) {
+            Write-Host "[ERRO] Campo de texto não detectado." -ForegroundColor Red
+            return
+        }
+    }
+
     Set-Clipboard -Value $text
     Press-Key("^v")
 }
+
+function Paste-RepeatDownGrid {
+    param(
+        [string[]]$tokens,
+        [int]$afterPasteDelayMs = 60,
+        [int]$afterEnterDelayMs = 120
+    )
+
+    if ($null -eq $tokens) { return }
+
+    foreach ($tk in $tokens) {
+        $rr = Parse-RepeatToken $tk
+        if ($null -eq $rr) { continue }
+
+        for ($i = 1; $i -le $rr.count; $i++) {
+
+            # cola valor
+            Paste-Text $rr.value
+            SleepMs $afterPasteDelayMs
+
+            # desce só se NÃO for o último
+            if ($i -lt $rr.count) {
+                Press-Key("{DOWN}")
+                SleepMs $afterPasteDelayMs
+            }
+        }
+    }
+}
+
 
 function Countdown {
     param([int]$Seconds = 3)
@@ -118,10 +193,15 @@ function Paste-RepeatDown {
         if ($null -eq $rr) { continue }
 
         for ($i=1; $i -le $rr.count; $i++) {
+
             Paste-Text $rr.value
             SleepMs $afterPasteDelayMs
-            Press-Key("{DOWN}")
-            SleepMs $afterPasteDelayMs
+
+            # Só desce se NÃO for o último
+            if ($i -lt $rr.count) {
+                Press-Key("{DOWN}")
+                SleepMs $afterPasteDelayMs
+            }
         }
     }
 }
@@ -138,9 +218,9 @@ function Parse-ProducersTxt {
 
     $items = New-Object System.Collections.Generic.List[object]
     $cur = $null
-    $mode = ""   # "", "GRorJBS", "QUANT_MINUTAS", "PLACAS"
+    $mode = ""          # "", "GRorJBS", "QUANT_MINUTAS", "PLACAS"
     $inProducer = $false
-    $pendingBlock = ""  # "GRorJBS" ou "QUANT_MINUTAS" quando vier '=' e a chave '{' vem na linha seguinte
+    $pendingBlock = ""  # "GRorJBS" ou "QUANT_MINUTAS"
 
     function New-Producer {
         return @{
@@ -179,101 +259,121 @@ function Parse-ProducersTxt {
         if ($line -eq "") { continue }
         if ($line.StartsWith("#") -or $line.StartsWith(";")) { continue }
 
-        # nova seção
-        if ($line -match '^\[(.+)\]$') {
-            $section = $matches[1].Trim().ToUpperInvariant()
+        $reprocess = $true
+        while ($reprocess) {
+            $reprocess = $false
 
-            Flush-Current
+            # nova seção
+            if ($line -match '^\[(.+)\]$') {
+                $section = $matches[1].Trim().ToUpperInvariant()
 
-            $cur = $null
-            $mode = ""
-            $pendingBlock = ""
-            $inProducer = $false
+                Flush-Current
 
-            if ($section -eq "PRODUTOR") {
-                $cur = New-Producer
-                $inProducer = $true
-            }
-            continue
-        }
-
-        if (-not $inProducer -or $cur -eq $null) { continue }
-
-        # fechamento de bloco { }
-        if ($line -eq "}") {
-            $mode = ""
-            $pendingBlock = ""
-            continue
-        }
-
-        # abertura de bloco { } na linha seguinte ao "GRorJBS=" ou "QUANT_MINUTAS="
-        if ($line -eq "{") {
-            if ($pendingBlock -ne "") {
-                $mode = $pendingBlock
+                $cur = $null
+                $mode = ""
                 $pendingBlock = ""
+                $inProducer = $false
+
+                if ($section -eq "PRODUTOR") {
+                    $cur = New-Producer
+                    $inProducer = $true
+                }
+                continue
             }
-            continue
-        }
 
-        # dentro do bloco { ... }
-        if ($mode -ne "") {
-            if ($mode -eq "GRorJBS")       { $cur.GRorJBS.Add($line); continue }
-            if ($mode -eq "QUANT_MINUTAS") { $cur.QUANT_MINUTAS.Add($line); continue }
-            continue
-        }
+            if (-not $inProducer -or $cur -eq $null) { continue }
 
-        # PLACAS:
-        if ($line -match '^PLACAS\s*:\s*(.*)$') {
-            $mode = "PLACAS"
-            $rest = $matches[1].Trim()
-            if ($rest -ne "") { $cur.PLACAS.Add($rest) }
-            continue
-        }
-
-        # lendo placas até mudar seção
-        if ($mode -eq "PLACAS") {
-            $cur.PLACAS.Add($line)
-            continue
-        }
-
-        # GRorJBS=
-        if ($line -match '^GRorJBS\s*=\s*(.*)$') {
-            $rest = $matches[1].Trim()
-            if ($rest -eq "{") { $mode = "GRorJBS"; continue }
-            if ($rest -eq "")  { $pendingBlock = "GRorJBS"; continue }
-            $cur.GRorJBS.Add($rest)
-            continue
-        }
-
-        # QUANT_MINUTAS=
-        if ($line -match '^QUANT_MINUTAS\s*=\s*(.*)$') {
-            $rest = $matches[1].Trim()
-            if ($rest -eq "{") { $mode = "QUANT_MINUTAS"; continue }
-            if ($rest -eq "")  { $pendingBlock = "QUANT_MINUTAS"; continue }
-            $cur.QUANT_MINUTAS.Add($rest)
-            continue
-        }
-
-        # chaves simples
-        if ($line -match '^([A-Za-zÇçÃãÕõÉéÍíÓóÚú_]+)\s*=\s*(.*)$') {
-            $k = $matches[1].Trim().ToUpperInvariant()
-            $v = $matches[2].Trim()
-            switch ($k) {
-                "NOME"      { $cur.NOME = $v; break }
-                "STATUS"    { $cur.STATUS = $v; break }
-                "TIPO"      { $cur.TIPO = $v; break }
-                "INSTRUCAO" { $cur.INSTRUCAO = $v; break }
-                "INSTRUÇÃO" { $cur.INSTRUCAO = $v; break }
-                "PEDIDO"    { $cur.PEDIDO = $v; break }
-                default     { break }
+            # fechamento de bloco { }
+            if ($line -eq "}") {
+                $mode = ""
+                $pendingBlock = ""
+                continue
             }
-            continue
+
+            # abertura de bloco { } na linha seguinte ao "GRorJBS=" ou "QUANT_MINUTAS="
+            if ($line -eq "{") {
+                if ($pendingBlock -ne "") {
+                    $mode = $pendingBlock
+                    $pendingBlock = ""
+                }
+                continue
+            }
+
+            # ===== dentro de PLACAS =====
+            if ($mode -eq "PLACAS") {
+                # se começou outra chave, sai do modo PLACAS e reprocessa a linha
+                if ($line -match '^[A-Za-zÇçÃãÕõÉéÍíÓóÚú_]+\s*=' -or
+                    $line -match '^(GRorJBS|QUANT_MINUTAS)\s*=' -or
+                    $line -match '^\[.+\]$') {
+                    $mode = ""
+                    $reprocess = $true
+                    continue
+                }
+
+                $cur.PLACAS.Add($line)
+                continue
+            }
+
+            # ===== dentro de blocos { } =====
+            if ($mode -ne "") {
+                if ($mode -eq "GRorJBS")       { $cur.GRorJBS.Add($line); continue }
+                if ($mode -eq "QUANT_MINUTAS") { $cur.QUANT_MINUTAS.Add($line); continue }
+                continue
+            }
+
+            # PLACAS:
+            if ($line -match '^PLACAS?\s*[:=]\s*(.*)$') {
+                $mode = "PLACAS"
+                $rest = $matches[1].Trim()
+                if ($rest -ne "") { $cur.PLACAS.Add($rest) }
+                continue
+            }
+
+            # GRorJBS=
+            if ($line -match '^GRorJBS\s*=\s*(.*)$') {
+                $rest = $matches[1].Trim()
+                if ($rest -eq "{") { $mode = "GRorJBS"; continue }
+                if ([string]::IsNullOrWhiteSpace($rest)) { $pendingBlock = "GRorJBS"; continue }
+                $cur.GRorJBS.Add($rest)
+                continue
+            }
+
+            # QUANT_MINUTAS=
+            if ($line -match '^QUANT_MINUTAS\s*=\s*(.*)$') {
+                $rest = $matches[1].Trim()
+                if ($rest -eq "{") { $mode = "QUANT_MINUTAS"; continue }
+                if ([string]::IsNullOrWhiteSpace($rest)) { $pendingBlock = "QUANT_MINUTAS"; continue }
+                $cur.QUANT_MINUTAS.Add($rest)
+                continue
+            }
+
+            # chaves simples
+            if ($line -match '^([A-Za-zÇçÃãÕõÉéÍíÓóÚú_]+)\s*=\s*(.*)$') {
+                $k = $matches[1].Trim().ToUpperInvariant()
+                $v = $matches[2].Trim()
+                switch ($k) {
+                    "NOME"      { $cur.NOME = $v; break }
+                    "STATUS"    { $cur.STATUS = $v; break }
+                    "TIPO"      { $cur.TIPO = $v; break }
+                    "INSTRUCAO" { $cur.INSTRUCAO = $v; break }
+                    "INSTRUÇÃO" { $cur.INSTRUCAO = $v; break }
+                    "PEDIDO"    { $cur.PEDIDO = $v; break }
+                    default     { break }
+                }
+                continue
+            }
         }
     }
 
     Flush-Current
     return $items
 }
+
+function Ask-YesNo([string]$msg){
+  $ans = Read-Host $msg
+  return ($ans.Trim().ToUpper() -eq "S")
+}
+
 
 # ==========================================
 # MAIN
@@ -298,6 +398,17 @@ if ($lista.Count -eq 0) {
     exit 0
 }
 
+
+
+<# teste de erro
+Write-Host "=== DEBUG PLACAS LIDAS DO TXT ===" -ForegroundColor Yellow
+foreach ($p in $lista) {
+  Write-Host ("NOME={0} | PLACAS_COUNT={1} | PLACAS={2}" -f $p.NOME, ($p.PLACAS.Count), ($p.PLACAS -join ", "))
+}
+pause
+#>
+
+
 Write-Host ""
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host " AUTOMACAO PECUARIA (PEDIDO)" -ForegroundColor Cyan
@@ -309,73 +420,176 @@ Write-Host "Abra o sistema e deixe a tela pronta." -ForegroundColor Yellow
 Countdown -Seconds 3
 
 # Ajuste: abre a tela alvo
-Invoke-ClickPos -Name "ABRIR_TELA_CONTRATACAO_VEICULO_ERP"
-SleepMs 2000
+ # Invoke-ClickPos -Name "ABRIR_TELA_CONTRATACAO_VEICULO_ERP"
+ # SleepMs 1000
 
 foreach ($p in $lista) {
 
     $nome = (Nz $p.NOME).Trim()
     $instrucao = (Nz $p.INSTRUCAO).Trim()
 
+    Invoke-ClickPos -Name "FOCAR_NA_TELA_CADASTRAR_FRETE"
+
+
+    if($p.status -eq "CONFIRMADO"){
+        Write-Host ("[SKIP] PRODUTOR {0}/{1}: {2} ja esta CONFIRMADO - pulando." -f $pIndex, $producers.Count, $p.nome)
+        continue
+    }
+
+
     Write-Host ""
     Write-Host ("PRODUTOR:   {0}" -f $nome) -ForegroundColor Green
     Write-Host ("INSTRUCAO:  {0}" -f $instrucao) -ForegroundColor Green
 
-    # 1) Pesquisa/abre pela instrução
+    ######################################### execução aqui
+    
+
+    SleepMs 50
+    Invoke-ClickPos -Name "CADASTRAR_PLACAS_LEFT_001_535_67"
+    SleepMs 639
     Press-Key("{F7}")
-    SleepMs 80
+    SleepMs 639
     Paste-Text $instrucao
-    SleepMs 80
+    SleepMs 639
     Press-Key("{ENTER}")
+    SleepMs 639
     Press-Key("{ENTER}")
-
-    SleepMs 250
-
-    # 2) Seleciona primeira linha/campo alvo
-    Invoke-ClickPos -Name "SELECIONAR_PRIMEIRA_PLACA"
-    SleepMs 150
-
+    SleepMs 639
+    Invoke-ClickPos -Name "CADASTRAR_PLACAS_LEFT_002_134_456"
+    SleepMs 639
+    
     # === GRorJBS (colar e descer)
     if ($p.GRorJBS -ne $null -and $p.GRorJBS.Count -gt 0) {
-        Paste-RepeatDown -tokens $p.GRorJBS -afterPasteDelayMs 40
+        Paste-RepeatDownGrid -tokens $p.GRorJBS -afterPasteDelayMs 60 -afterEnterDelayMs 120
         SleepMs 120
     }
+    Press-Key("{PGUP}")
+    Press-Key("{PGUP}")
+    Press-Key("{PGUP}")
+    Press-Key("{PGUP}")
 
-    # Navegação do seu fluxo (ajuste se precisar)
-    Press-Key("{HOME}")
-    SleepMs 60
-    Press-Key("{TAB}")
-    SleepMs 60
-    Press-Key("{TAB}")
-    SleepMs 150
+    SleepMs 639
+    Invoke-ClickPos -Name "CADASTRAR_PLACAS_LEFT_002_134_456"
 
+    SleepMs 639
+    Press-Key("{TAB}")
+    SleepMs 639
+    Press-Key("{TAB}")
+    SleepMs 639
+    
+    
     # === QUANT_MINUTAS (colar e descer)
     if ($p.QUANT_MINUTAS -ne $null -and $p.QUANT_MINUTAS.Count -gt 0) {
-        Paste-RepeatDown -tokens $p.QUANT_MINUTAS -afterPasteDelayMs 40
+        Paste-RepeatDownGrid -tokens $p.QUANT_MINUTAS -afterPasteDelayMs 120 -afterEnterDelayMs 120
         SleepMs 120
     }
+    Press-Key("{PGUP}")
+    Press-Key("{PGUP}")
+    Press-Key("{PGUP}")
+    Press-Key("{PGUP}")    
 
-    # Volta para campo de placas (ajuste conforme sua tela)
+
+    
+    SleepMs 639
     Press-Key("+{TAB}")
-    SleepMs 150
+    SleepMs 639
 
-    # === PLACAS (uma por linha, descendo)
-    if ($p.PLACAS -ne $null -and $p.PLACAS.Count -gt 0) {
-        foreach ($pl in $p.PLACAS) {
-            $vv = (Nz $pl).Trim()
-            if ($vv -eq "") { continue }
-            Paste-Text $vv
-            SleepMs 40
+
+
+# === PLACAS (força foco + modo edição)
+if ($p.PLACAS -ne $null -and $p.PLACAS.Count -gt 0) {
+
+    # clica UMA vez na primeira linha/célula do grid
+    Invoke-ClickPos -Name "CLICAR_ADD_PLACAS_CONTRATACAO_VEICULO"
+    SleepMs 250
+
+    for ($i=0; $i -lt $p.PLACAS.Count; $i++) {
+        $vv = (Nz $p.PLACAS[$i]).Trim()
+        if ($vv -eq "") { continue }
+
+        # entra em edição
+        Press-Key("A")
+        SleepMs 200
+
+        # limpa
+        Press-Key("^a")
+        SleepMs 120
+        Press-Key("{DEL}")
+        SleepMs 120
+
+        # cola e confirma
+        Paste-Text $vv
+        SleepMs 250
+        Press-Key("{ENTER}")
+        Press-Key("{ENTER}")
+        SleepMs 400
+
+        # próxima linha
+        if ($i -lt ($p.PLACAS.Count - 1)) {
             Press-Key("{DOWN}")
-            SleepMs 40
+            SleepMs 250
         }
     }
+}
+
+    Press-Key("{PGUP}")
+    Press-Key("{PGUP}")
+    Press-Key("{PGUP}")
+    Press-Key("{PGUP}")
 
 
-    Press-Key("{F4}")
-    SleepMs 2000
-    Invoke-ClickPos -Name "FECHAR_TELA_FRETE"
 
+
+
+
+
+# ===============================
+# VALIDAR QUANT_MINUTAS (>20)
+# ===============================
+$maiorQue20 = $false
+
+if ($p.QUANT_MINUTAS -ne $null -and $p.QUANT_MINUTAS.Count -gt 0) {
+    foreach ($tk in $p.QUANT_MINUTAS) {
+
+        $rr = Parse-RepeatToken $tk
+        if ($null -eq $rr) { continue }
+
+        # tenta converter valor para número
+        $num = 0
+        if ([int]::TryParse($rr.value, [ref]$num)) {
+            if ($num -gt 20) {
+                $maiorQue20 = $true
+                break
+            }
+        }
+    }
+}
+
+if ($maiorQue20) {
+    Write-Host ""
+    Write-Host "QUANT_MINUTAS acima de 20 detectado." -ForegroundColor Yellow
+    Write-Host "FACA A EDICAO MANUAL E PRESSIONE ENTER PARA CONTINUAR..."
+    Read-Host
+}
+
+
+SleepMs 100
+    Invoke-ClickPos -Name "CADASTRAR_PLACAS_LEFT_001_535_67"
+
+SleepMs 300
+Press-Key("{F4}")
+SleepMs 3000
+
+Invoke-ClickPos -Name "FECHAR_TELA_DO_FRETE_CARREGANDO"
+
+SleepMs 2000
+
+Press-Key("{ENTER}")
+
+
+
+
+    # até aqui ######################################### 
     # ================================
     # CONFIRMACAO PROXIMO PRODUTOR
     # ================================

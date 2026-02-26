@@ -1,57 +1,55 @@
 @echo off
-title Abrir Corporate - Quantidade Personalizada
-color 0A
+title Encerrador Seguro - Corporate.exe
 
-set APP_PATH=K:\Div\CorporateUpdater\JBS.Updater.Corporate.exe
 
 echo ==========================================
-echo     ABRIR CORPORATE - MULTIPLAS INSTANCIAS
+echo   ENCERRAMENTO SEGURO - CORPORATE.EXE
 echo ==========================================
 echo.
 
-:: Verifica se o arquivo existe
-if not exist "%APP_PATH%" (
-    echo ERRO: Arquivo nao encontrado:
-    echo %APP_PATH%
+:: Verifica se o processo existe
+tasklist | findstr /I "Corporate.exe" >nul
+
+if errorlevel 1 (
+    echo Nenhum processo Corporate.exe encontrado em execucao.
     echo.
     pause
     exit /b
 )
 
-set /p QTD="Quantas instancias deseja abrir? "
+echo Processos encontrados:
+echo ------------------------------------------
+tasklist | findstr /I "Corporate.exe"
+echo ------------------------------------------
+echo.
 
-:: Verifica se digitou algo
-if "%QTD%"=="" (
-    echo Valor invalido.
+echo ATENCAO:
+echo Isso ira ENCERRAR todos os processos Corporate.exe
+echo e seus subprocessos.
+echo.
+
+set /p CONFIRMA="Deseja realmente continuar? (S/N): "
+
+if /I NOT "%CONFIRMA%"=="S" (
+    echo.
+    echo Operacao cancelada pelo usuario.
     pause
     exit /b
 )
 
-:: Valida se é numero
-for /f "delims=0123456789" %%A in ("%QTD%") do (
-    echo Valor invalido. Digite apenas numeros.
-    pause
-    exit /b
+echo.
+echo Encerrando processos...
+echo.
+
+:: Mata a arvore de processos
+taskkill /F /T /IM Corporate.exe
+
+if errorlevel 1 (
+    echo Erro ao tentar encerrar os processos.
+) else (
+    echo Processos encerrados com sucesso.
 )
 
 echo.
-echo Abrindo %QTD% instancia(s)...
-echo.
-
-set /a I=1
-
-:LOOP
-if %I% GTR %QTD% goto FIM
-
-start "" "%APP_PATH%"
-
-echo Instancia %I% aberta.
-set /a I+=1
-timeout /t 1 >nul
-goto LOOP
-
-:FIM
-echo.
-echo Concluido com sucesso.
 pause
 exit /b
