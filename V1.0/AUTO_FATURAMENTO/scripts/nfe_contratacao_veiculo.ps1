@@ -516,6 +516,11 @@ try {
     Abort-IfNeeded
 
 
+    if($p.status -eq "CONFIRMADO"){
+      Write-Host ("[SKIP] {0}/{1}: {2} ja CONFIRMADO" -f $pIndex, $ordered.Count, $p.nome) -ForegroundColor DarkGray
+      continue
+    }
+
     # ================================
     # IGNORAR PRODUTOR SEM NOTA FISCAL
     # ================================
@@ -524,15 +529,6 @@ try {
         Write-Host ("[SKIP] PRODUTOR {0}/{1}: {2} sem nota fiscal - pulando." -f $pIndex, $producers.Count, $p.nome)
         continue
     }
-
-
-
-
-    if($p.status -eq "CONFIRMADO"){
-      Write-Host ("[SKIP] {0}/{1}: {2} ja CONFIRMADO" -f $pIndex, $ordered.Count, $p.nome) -ForegroundColor DarkGray
-      continue
-    }
-    
 
     Write-Host ""
     Write-Host "--------------------------------------------------"

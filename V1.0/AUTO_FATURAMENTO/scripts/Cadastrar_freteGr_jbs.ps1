@@ -112,27 +112,51 @@ function Paste-Text([string]$text) {
     Press-Key("^v")
 }
 
-function Paste-RepeatDownGrid {
+function Paste-RepeatDown {
     param(
         [string[]]$tokens,
-        [int]$afterPasteDelayMs = 60,
-        [int]$afterEnterDelayMs = 120
+        [int]$afterPasteDelayMs = 40,
+        [int]$afterEnterDelayMs = 50
     )
 
-    if ($null -eq $tokens) { return }
+    if ($null -eq $tokens -or $tokens.Count -eq 0) { return }
 
-    foreach ($tk in $tokens) {
+    # acha o último token válido (não vazio)
+    $lastValid = -1
+    for ($k = $tokens.Count - 1; $k -ge 0; $k--) {
+        if ((Nz $tokens[$k]).Trim() -ne "") { $lastValid = $k; break }
+    }
+    if ($lastValid -lt 0) { return }
+
+    for ($t = 0; $t -le $lastValid; $t++) {
+
+        $tk = (Nz $tokens[$t]).Trim()
+        if ($tk -eq "") { continue }
+
         $rr = Parse-RepeatToken $tk
         if ($null -eq $rr) { continue }
 
         for ($i = 1; $i -le $rr.count; $i++) {
 
-            # cola valor
+            # cola
             Paste-Text $rr.value
-            SleepMs $afterPasteDelayMs
+            SleepMs 10
 
-            # desce só se NÃO for o último
-            if ($i -lt $rr.count) {
+            # ✅ SEMPRE confirma a célula
+            Press-Key("{ENTER}")
+            SleepMs $afterEnterDelayMs
+
+            $isLastRepeatOfThisToken = ($i -eq $rr.count)
+            $isLastToken = ($t -eq $lastValid)
+            $isLastOverall = ($isLastToken -and $isLastRepeatOfThisToken)
+
+            # ✅ desce se ainda tem coisa pra preencher (mesmo token ou próximo token)
+            if (-not $isLastOverall) {
+                Press-Key("{DOWN}")
+                SleepMs $afterPasteDelayMs
+            }
+            else {
+                # ✅ você pediu: no último (ex.: 16X1) desce 1 linha e segue o fluxo sem colar mais
                 Press-Key("{DOWN}")
                 SleepMs $afterPasteDelayMs
             }
@@ -155,72 +179,98 @@ function Countdown {
     Write-Host "ENVIANDO TECLAS..." -ForegroundColor Cyan
 }
 
-function Nz([object]$v) {
-    if ($null -eq $v) { return "" }
-    return [string]$v
+
+
+# =============================
+# Função auxiliar: trata nulos
+# =============================
+function Nz {
+    param($val)
+    if ($null -eq $val) { return "" }
+    return $val
 }
 
-# ==========================================
-# Repetição tipo 2799317X3 / 27X5
-# ==========================================
-function Parse-RepeatToken([string]$s) {
-    $t = (Nz $s).Trim()
-    if ($t -eq "") { return $null }
+# =============================
+# Função para parsear tokens tipo 2799317x2
+# =============================
+function Parse-RepeatToken {
+    param([string]$token)
 
-    if ($t -match '^\s*(.+?)\s*[xX]\s*(\d+)\s*$') {
-        return @{
+    if ($token -match '^(.+?)x(\d+)$') {
+        return [PSCustomObject]@{
             value = $matches[1].Trim()
             count = [int]$matches[2]
         }
     }
-
-    return @{
-        value = $t
-        count = 1
-    }
+    return $null
 }
 
+# =============================
+# Função que cola repetido e desce corretamente
+# =============================
 function Paste-RepeatDown {
     param(
         [string[]]$tokens,
         [int]$afterPasteDelayMs = 40
     )
 
-    if ($null -eq $tokens) { return }
+    if ($null -eq $tokens -or $tokens.Count -eq 0) { return }
 
-    foreach ($tk in $tokens) {
+    for ($t = 0; $t -lt $tokens.Count; $t++) {
+
+        $tk = (Nz $tokens[$t]).Trim()
+        if ($tk -eq "") { continue }
+
         $rr = Parse-RepeatToken $tk
         if ($null -eq $rr) { continue }
 
-        for ($i=1; $i -le $rr.count; $i++) {
+        # Cola N vezes (Xn)
+        for ($i = 1; $i -le $rr.count; $i++) {
 
             Paste-Text $rr.value
-            SleepMs $afterPasteDelayMs
+            SleepMs 10
 
-            # Só desce se NÃO for o último
+            # Desce entre repetições do MESMO token (X2, X3...)
             if ($i -lt $rr.count) {
+                SleepMs 50
                 Press-Key("{DOWN}")
                 SleepMs $afterPasteDelayMs
             }
         }
+
+        # ✅ desce 1 linha apenas se existir um PRÓXIMO token não vazio
+        $nextIdx = $t + 1
+        while ($nextIdx -lt $tokens.Count) {
+            $nextTk = (Nz $tokens[$nextIdx]).Trim()
+            if ($nextTk -ne "") {
+
+                SleepMs 50
+                Press-Key("{DOWN}")
+                SleepMs $afterPasteDelayMs
+                break
+            }
+            $nextIdx++
+        }
     }
 }
 
-# ==========================================
-# Parser do TXT (formato do seu exemplo)
-# ==========================================
+# =============================
+# Função que parseia o TXT
+# =============================
 function Parse-ProducersTxt {
     param([string]$path)
 
-    if (!(Test-Path -LiteralPath $path)) { throw "Nao achei o arquivo: $path" }
+    if (!(Test-Path -LiteralPath $path)) { 
+        throw "Nao achei o arquivo: $path" 
+    }
 
     $lines = Get-Content -LiteralPath $path
 
     $items = New-Object System.Collections.Generic.List[object]
     $cur = $null
-    $mode = ""          # "", "GRorJBS", "QUANT_MINUTAS", "PLACAS"
+    $mode = ""          
     $inProducer = $false
-    $pendingBlock = ""  # "GRorJBS" ou "QUANT_MINUTAS"
+    $pendingBlock = ""  
 
     function New-Producer {
         return @{
@@ -237,7 +287,9 @@ function Parse-ProducersTxt {
     }
 
     function Flush-Current {
-        if ($cur -ne $null -and -not [string]::IsNullOrWhiteSpace((Nz $cur.PEDIDO))) {
+        if ($cur -ne $null -and 
+            -not [string]::IsNullOrWhiteSpace((Nz $cur.PEDIDO))) {
+
             $items.Add([pscustomobject]@{
                 SECAO         = $cur.SECAO
                 NOME          = $cur.NOME
@@ -253,9 +305,9 @@ function Parse-ProducersTxt {
     }
 
     foreach ($raw in $lines) {
+
         if ($null -eq $raw) { $raw = "" }
         $line = $raw.Trim()
-
         if ($line -eq "") { continue }
         if ($line.StartsWith("#") -or $line.StartsWith(";")) { continue }
 
@@ -263,102 +315,61 @@ function Parse-ProducersTxt {
         while ($reprocess) {
             $reprocess = $false
 
-            # nova seção
             if ($line -match '^\[(.+)\]$') {
                 $section = $matches[1].Trim().ToUpperInvariant()
-
                 Flush-Current
-
-                $cur = $null
-                $mode = ""
-                $pendingBlock = ""
-                $inProducer = $false
-
-                if ($section -eq "PRODUTOR") {
-                    $cur = New-Producer
-                    $inProducer = $true
-                }
+                $cur = $null; $mode = ""; $pendingBlock = ""; $inProducer = $false
+                if ($section -eq "PRODUTOR") { $cur = New-Producer; $inProducer = $true }
                 continue
             }
 
             if (-not $inProducer -or $cur -eq $null) { continue }
 
-            # fechamento de bloco { }
-            if ($line -eq "}") {
-                $mode = ""
-                $pendingBlock = ""
-                continue
-            }
+            if ($line -eq "}") { $mode = ""; $pendingBlock = ""; continue }
+            if ($line -eq "{") { if ($pendingBlock -ne "") { $mode = $pendingBlock; $pendingBlock = "" }; continue }
 
-            # abertura de bloco { } na linha seguinte ao "GRorJBS=" ou "QUANT_MINUTAS="
-            if ($line -eq "{") {
-                if ($pendingBlock -ne "") {
-                    $mode = $pendingBlock
-                    $pendingBlock = ""
-                }
-                continue
-            }
-
-            # ===== dentro de PLACAS =====
             if ($mode -eq "PLACAS") {
-                # se começou outra chave, sai do modo PLACAS e reprocessa a linha
-                if ($line -match '^[A-Za-zÇçÃãÕõÉéÍíÓóÚú_]+\s*=' -or
-                    $line -match '^(GRorJBS|QUANT_MINUTAS)\s*=' -or
-                    $line -match '^\[.+\]$') {
-                    $mode = ""
-                    $reprocess = $true
-                    continue
+                if ($line -match '^[A-Za-zÇçÃãÕõÉéÍíÓóÚú_]+\s*[:=]' -or $line -match '^\[.+\]$') {
+                    $mode = ""; $reprocess = $true; continue
                 }
-
-                $cur.PLACAS.Add($line)
-                continue
+                $cur.PLACAS.Add($line); continue
             }
 
-            # ===== dentro de blocos { } =====
             if ($mode -ne "") {
                 if ($mode -eq "GRorJBS")       { $cur.GRorJBS.Add($line); continue }
                 if ($mode -eq "QUANT_MINUTAS") { $cur.QUANT_MINUTAS.Add($line); continue }
                 continue
             }
 
-            # PLACAS:
             if ($line -match '^PLACAS?\s*[:=]\s*(.*)$') {
-                $mode = "PLACAS"
-                $rest = $matches[1].Trim()
-                if ($rest -ne "") { $cur.PLACAS.Add($rest) }
-                continue
+                $mode = "PLACAS"; $rest = $matches[1].Trim()
+                if ($rest -ne "") { $cur.PLACAS.Add($rest) }; continue
             }
 
-            # GRorJBS=
             if ($line -match '^GRorJBS\s*=\s*(.*)$') {
                 $rest = $matches[1].Trim()
                 if ($rest -eq "{") { $mode = "GRorJBS"; continue }
                 if ([string]::IsNullOrWhiteSpace($rest)) { $pendingBlock = "GRorJBS"; continue }
-                $cur.GRorJBS.Add($rest)
-                continue
+                $cur.GRorJBS.Add($rest); continue
             }
 
-            # QUANT_MINUTAS=
             if ($line -match '^QUANT_MINUTAS\s*=\s*(.*)$') {
                 $rest = $matches[1].Trim()
                 if ($rest -eq "{") { $mode = "QUANT_MINUTAS"; continue }
                 if ([string]::IsNullOrWhiteSpace($rest)) { $pendingBlock = "QUANT_MINUTAS"; continue }
-                $cur.QUANT_MINUTAS.Add($rest)
-                continue
+                $cur.QUANT_MINUTAS.Add($rest); continue
             }
 
-            # chaves simples
             if ($line -match '^([A-Za-zÇçÃãÕõÉéÍíÓóÚú_]+)\s*=\s*(.*)$') {
                 $k = $matches[1].Trim().ToUpperInvariant()
                 $v = $matches[2].Trim()
                 switch ($k) {
-                    "NOME"      { $cur.NOME = $v; break }
-                    "STATUS"    { $cur.STATUS = $v; break }
-                    "TIPO"      { $cur.TIPO = $v; break }
-                    "INSTRUCAO" { $cur.INSTRUCAO = $v; break }
-                    "INSTRUÇÃO" { $cur.INSTRUCAO = $v; break }
-                    "PEDIDO"    { $cur.PEDIDO = $v; break }
-                    default     { break }
+                    "NOME"       { $cur.NOME = $v; break }
+                    "STATUS"     { $cur.STATUS = $v; break }
+                    "TIPO"       { $cur.TIPO = $v; break }
+                    "INSTRUCAO"  { $cur.INSTRUCAO = $v; break }
+                    "INSTRUÇÃO"  { $cur.INSTRUCAO = $v; break }
+                    "PEDIDO"     { $cur.PEDIDO = $v; break }
                 }
                 continue
             }
@@ -368,6 +379,57 @@ function Parse-ProducersTxt {
     Flush-Current
     return $items
 }
+
+# =============================
+# Função que processa cada produtor e cola todos os blocos
+# =============================
+function Process-Producer {
+    param([pscustomobject]$producer)
+
+    Write-Host "Processando: $($producer.NOME)"
+
+    # Cole GRorJBS
+    if ($producer.GRorJBS.Count -gt 0) {
+        Paste-RepeatDown -tokens $producer.GRorJBS -afterPasteDelayMs 40
+    }
+
+    # Cole QUANT_MINUTAS
+    if ($producer.QUANT_MINUTAS.Count -gt 0) {
+        Paste-RepeatDown -tokens $producer.QUANT_MINUTAS -afterPasteDelayMs 40
+    }
+
+    # Cole PLACAS
+    foreach ($placa in $producer.PLACAS) {
+        $p = (Nz $placa).Trim()
+        if ($p -ne "") {
+            Paste-Text $p
+            SleepMs 50
+            Press-Key("{DOWN}")
+            SleepMs 40
+        }
+    }
+}
+
+# =============================
+# Fluxo principal
+# =============================
+$ScriptDir = $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ScriptDir)) {
+    $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+}
+$BaseDir = Split-Path -Parent $ScriptDir
+
+$path = Join-Path $BaseDir "input\pec\CadastrarPlacasVeiculo.txt"  # <<< altere para seu arquivo TXT
+$producers = Parse-ProducersTxt -path $path
+
+foreach ($p in $producers) {
+    Process-Producer -producer $p
+}
+
+
+
+
+
 
 function Ask-YesNo([string]$msg){
   $ans = Read-Host $msg
@@ -436,13 +498,18 @@ foreach ($p in $lista) {
         continue
     }
 
+    if(-not $p.PLACAS -or $p.PLACAS.Count -eq 0 -or ($p.PLACAS | Where-Object { $_ -and $_.Trim() -ne "" }).Count -eq 0){
+        Write-Host ""
+        Write-Host ("[SKIP] PRODUTOR {0}/{1}: {2} sem placas - pulando." -f $pIndex, $producers.Count, $p.nome)
+        continue
+    }
 
     Write-Host ""
     Write-Host ("PRODUTOR:   {0}" -f $nome) -ForegroundColor Green
     Write-Host ("INSTRUCAO:  {0}" -f $instrucao) -ForegroundColor Green
 
     ######################################### execução aqui
-    
+    <############################################################################################## REMOVER
 
     SleepMs 50
     Invoke-ClickPos -Name "CADASTRAR_PLACAS_LEFT_001_535_67"
@@ -460,7 +527,7 @@ foreach ($p in $lista) {
     
     # === GRorJBS (colar e descer)
     if ($p.GRorJBS -ne $null -and $p.GRorJBS.Count -gt 0) {
-        Paste-RepeatDownGrid -tokens $p.GRorJBS -afterPasteDelayMs 60 -afterEnterDelayMs 120
+        Paste-RepeatDown -tokens $p.GRorJBS -afterPasteDelayMs 60 -afterEnterDelayMs 120
         SleepMs 120
     }
     Press-Key("{PGUP}")
@@ -480,7 +547,7 @@ foreach ($p in $lista) {
     
     # === QUANT_MINUTAS (colar e descer)
     if ($p.QUANT_MINUTAS -ne $null -and $p.QUANT_MINUTAS.Count -gt 0) {
-        Paste-RepeatDownGrid -tokens $p.QUANT_MINUTAS -afterPasteDelayMs 120 -afterEnterDelayMs 120
+        Paste-RepeatDown -tokens $p.QUANT_MINUTAS -afterPasteDelayMs 120 -afterEnterDelayMs 120
         SleepMs 120
     }
     Press-Key("{PGUP}")
@@ -495,7 +562,7 @@ foreach ($p in $lista) {
     SleepMs 639
 
 
-
+###############################################################################################>
 # === PLACAS (força foco + modo edição)
 if ($p.PLACAS -ne $null -and $p.PLACAS.Count -gt 0) {
 

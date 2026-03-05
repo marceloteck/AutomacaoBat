@@ -279,7 +279,7 @@ foreach ($p in $lista) {
     $instrucao = $p.INSTRUCAO
     
 
-    if($p.status -eq "CONFIRMADO"){
+    if($p.status -eq "CONFIRMADO" -or $p.status -eq "PENDENTE"){
         Write-Host ("[SKIP] PRODUTOR {0}/{1}: {2} ja esta CONFIRMADO - pulando." -f $pIndex, $producers.Count, $p.nome)
         continue
     }
@@ -320,16 +320,16 @@ while ($true) {
 
 # TELA EMITIR NFE
 Invoke-ClickPos -Name "ABRIR_TELA_AC_NFE_ERP"
-SleepMs 1200
+SleepMs 80
 
 Invoke-DoubleClickPos -Name "SALVAR_ACER_LEFT_001_136_233" # INPUT NFE INSTRUÇÃO
 SleepMs 1200
  Press-Key("^a")
-SleepMs 1200
+SleepMs 200
    Paste-Text $instrucao
-SleepMs 1200  
+SleepMs 900  
 Press-Key("{TAB}")
-SleepMs 1200
+SleepMs 80
 Press-Key("{F3}")
 
 
@@ -337,18 +337,18 @@ Press-Key("{F3}")
 SleepMs 1200
 Invoke-ClickPos -Name "ABRIR_TELA_AC_DOCUMENTO_SIMPLIFICADO_ERP"
 SleepMs 1200
-Press-Key("{F7}")
-SleepMs 1200
+#Press-Key("{F7}")
+Invoke-ClickPos -Name "ABRIR_TELA_AC_PESQUISASEM_F7"
+SleepMs 1000
 Press-Key("^a")
-SleepMs 1200
+SleepMs 80
 Paste-Text $instrucao
-SleepMs 1200
+SleepMs 50
 Press-Key("{ENTER}")
-SleepMs 1200
 
-SleepMs 1200
+SleepMs 800
 Invoke-ClickPos -Name "SALVAR_ACER_LEFT_004_757_420" # CLIQUE ORGANIZAR LISTA
-SleepMs 1200
+SleepMs 1000
 Invoke-DoubleClickPos -Name "SALVAR_ACER_LEFT_005_770_452" # CLICAR NO DOCUMENTO TIPO 16
 SleepMs 1200
 Invoke-DoubleClickPos -Name "clicar_imput_n2_doc_simplificado" # CLICAR NO IMPUT CODIGO 2
@@ -358,12 +358,12 @@ SleepMs 1200
 Paste-Text "2"
 SleepMs 900  
 Press-Key("{TAB}")
-SleepMs 900
+SleepMs 80
 Press-Key("{F4}")
 
-SleepMs 800
+SleepMs 80
 Press-Key("{F3}")
-SleepMs 800
+SleepMs 80
 Press-Key("{ENTER}")
 
 
@@ -383,18 +383,18 @@ SleepMs 1200
 Invoke-ClickPos -Name "SALVAR_ACER_LEFT_012_519_229" # CLICAR NO IMPUT DO FORMULARIO
 SleepMs 1200
 Press-Key("^a")
-SleepMs 1200
+SleepMs 80
 Press-Key("^v") # COLADO: 3486
-SleepMs 1200
+SleepMs 80
 Press-Key("{TAB}")
 
-SleepMs 1200
+SleepMs 1000
 Press-Key("{F4}")
-SleepMs 1200
+SleepMs 80
 Press-Key("{F3}")
-SleepMs 1200
+SleepMs 80
 Press-Key("{ENTER}")
-
+SleepMs 80
 pause
 <#
 #>
@@ -415,9 +415,9 @@ SleepMs 1200
 Invoke-DoubleClickPos -Name "SALVAR_ACER_LEFT_015_192_205"
 SleepMs 1200
 Press-Key("^a")
-SleepMs 1200
+SleepMs 80
 Paste-Text $pedido
-SleepMs 1200
+SleepMs 80
 Press-Key("{TAB}")
 SleepMs 1200
 Invoke-ClickPos -Name "CLICAR_ABA_MUDAR_CARGA"
@@ -425,31 +425,89 @@ SleepMs 1200
 Invoke-ClickPos -Name "CLICAR_INPUT_MUDAR_CARGA"
 SleepMs 1200
 Press-Key("^a")
-SleepMs 1200
+SleepMs 200
 Paste-Text "1"
 
-SleepMs 1200
+SleepMs 500
 Press-Key("{F3}")
 
-
+SleepMs 1000
 # =========================
 # SE TIVER 2 CARGAS, ABRIR A CARGA 2 TAMBÉM
 # =========================
 if ($cargas -eq 2) {
-  Invoke-ClickPos -Name "CLICAR_ABA_MUDAR_CARGA"
+  Invoke-ClickPos -Name "CLICAR_ABA_MUDAR_CARGA_2"
   SleepMs 1200
   Invoke-ClickPos -Name "CLICAR_INPUT_MUDAR_CARGA"
   SleepMs 1200
   Press-Key("^a")
-  SleepMs 1200
+  SleepMs 600
   Paste-Text "2"
-  SleepMs 1200
+  SleepMs 200
   Press-Key("{F3}")
   SleepMs 2000
 }
 
-
+26348   
 Set-ClipText $nome
+SleepMs 300
+
+Invoke-ClickPos -Name "SALVAR_ACER_LEFT_011_976_76"
+SleepMs 1200
+Press-Key("{F9}")
+SleepMs 1200
+Invoke-ClickPos -Name "CLICAR_IMPRIMIR_OPT_ACER"
+SleepMs 1200
+Invoke-ClickPos -Name "CLICAR_IMPRIMIR_OPT_SOMENTEESTAPAGINA_PAGINAATUAL"
+SleepMs 1200
+Invoke-ClickPos -Name "CLICAR_IMPRIMIR_OPT_SOMENTEOPT_OOK"
+pause
+
+
+################################################################# romaneio
+SleepMs 1200
+Invoke-ClickPos -Name "ABRIR_TELA_ROMANEIO"
+SleepMs 1200
+Invoke-ClickPos -Name "CLICAR_ABA_MUDAR_CARGA_ABA_PRIMEIRA_CARGA"
+SleepMs 1000
+Invoke-ClickPos -Name "CLICAR_ABA_IMPRIMIR_PRIMEIRA_CARGA"
+SleepMs 1000
+
+if ($cargas -eq 2) {
+  Invoke-ClickPos -Name "CLICAR_ABA_MUDAR_CARGA_ABA_SEGUNDA_CARGA"
+  SleepMs 1000
+  Invoke-ClickPos -Name "CLICAR_ABA_IMPRIMIR_SEGUNDA_CARGA"
+  SleepMs 1000
+
+  Invoke-ClickPos -Name "CLICAR_ABA_IFECHAR_ABAS"
+}
+
+SleepMs 600
+Invoke-ClickPos -Name "CLICAR_ABA_IFECHAR_ABAS"
+
+################################################################# 
+
+SleepMs 1000
+
+Invoke-ClickPos -Name "SALVAR_ACER_LEFT_007_701_74" # ABRIR TELA NFE
+SleepMs 1000
+Press-Key("^9")
+SleepMs 1000
+Invoke-ClickPos -Name "CLICAR_FECHAR_OPC_EM_NAO" 
+SleepMs 1000
+Invoke-ClickPos -Name "CLICAR_ABRIR_navegador" 
+SleepMs 1000
+Invoke-ClickPos -Name "CLICAR_ABRIR_PDF_CREATOR" 
+SleepMs 1000
+Invoke-ClickPos -Name "CLICAR_SELECIONAR_LOCALPRACOPIAR_PRODUTOR" 
+SleepMs 800
+Press-Key("^v")
+
+SleepMs 1000
+Invoke-ClickPos -Name "CLICAR_ABRIR_opt_pdf_creator" 
+
+SleepMs 1000
+Invoke-ClickPos -Name "CLICAR_ABRIR_opt_pdf_creator_MESCLAR" 
 
 # =========================
 # NO FINAL: IMPRIMIR

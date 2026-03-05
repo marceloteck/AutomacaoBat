@@ -238,30 +238,27 @@ foreach ($p in $lista) {
     Start-Sleep -Milliseconds 1464
 
     # F3 -> cola pedido -> Enter -> F11
-    Send-Key "{F3}"
-    Send-Key "{F3}"
-    Send-Key "{F3}"
-    Start-Sleep -Milliseconds 1464
+    Invoke-ClickPos -Name "ABRIR_PESQUISA_SEMF3"
+
+    Start-Sleep -Milliseconds 90
 
     Set-ClipText $pedido
     Start-Sleep -Milliseconds 1464
     Send-Key "^v"
-    Start-Sleep -Milliseconds 1464
+    Start-Sleep -Milliseconds 80
     Send-Key "{ENTER}"
-    Start-Sleep -Milliseconds 1464
+    Start-Sleep -Milliseconds 100
 
     Send-Key "{F11}"
 
-    Start-Sleep -Milliseconds 3000
+    Start-Sleep -Milliseconds 4464
 
-
-Start-Sleep -Milliseconds 1464 
-Invoke-ClickPos -Name "PEDIDO_SALVAR_LEFT_001_36_33"
-Start-Sleep -Milliseconds 1464
-Invoke-ClickPos -Name "PEDIDO_SALVAR_LEFT_002_910_638"
-Start-Sleep -Milliseconds 1464
-Invoke-ClickPos -Name "PEDIDO_SALVAR_LEFT_003_602_750"
-Start-Sleep -Milliseconds 1464
+    Invoke-ClickPos -Name "PEDIDO_SALVAR_LEFT_001_36_33"
+    Start-Sleep -Milliseconds 1464
+    Invoke-ClickPos -Name "PEDIDO_SALVAR_LEFT_002_910_638"
+    Start-Sleep -Milliseconds 1464
+    Invoke-ClickPos -Name "PEDIDO_SALVAR_LEFT_003_602_750"
+    Start-Sleep -Milliseconds 1464
 
     # ================================
     # COLAR DIRETORIO SOMENTE 1 VEZ
@@ -270,7 +267,7 @@ Start-Sleep -Milliseconds 1464
         Set-ClipText $saveDir
         Start-Sleep -Milliseconds 1464
         Send-Key "^v"
-        Start-Sleep -Milliseconds 1464
+        Start-Sleep -Milliseconds 80
         Send-Key "{ENTER}"
         Start-Sleep -Milliseconds 1464
         $dirPastedOnce = $true
@@ -284,7 +281,7 @@ Start-Sleep -Milliseconds 1464
     Set-ClipText $nome
     Start-Sleep -Milliseconds 1464
     Send-Key "^v"
-    Start-Sleep -Milliseconds 1464
+    Start-Sleep -Milliseconds 80
     Send-Key "{ENTER}"
 
 
@@ -292,7 +289,9 @@ Start-Sleep -Milliseconds 1464
     Start-Sleep -Milliseconds 4063
     Invoke-ClickPos -Name "FECHAR_PEDIDO_LEFT_001_412_39"
     Start-Sleep -Milliseconds 447
-    Send-Key "{F5}"
+    Invoke-ClickPos -Name "FECHARpEDIDO_SEM_F5"
+    Start-Sleep -Milliseconds 10
+
 
     
 

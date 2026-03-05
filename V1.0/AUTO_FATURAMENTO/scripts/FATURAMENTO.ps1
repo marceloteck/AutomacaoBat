@@ -246,7 +246,7 @@ function Countdown {
 # PERGUNTAR TIPO DE FATURAMENTO
 # ================================
 $TipoFaturamento = ""
-
+<#
 while ($TipoFaturamento -notin @("3","7")) {
     $TipoFaturamento = (Read-Host "Qual o tipo de faturamento? (Digite 3 para FASE 3 ou 7 para FASE 7)").Trim()
 
@@ -285,7 +285,7 @@ Press-Key("{F3}")
 
 pause
 
-<#
+
 Invoke-DoubleClickPos -Name "CLICAR_FATURAMENTO_DATA_principal"
 
 SleepMs 1000
@@ -318,21 +318,34 @@ foreach ($p in $lista) {
     $nome = $p.NOME
     $instrucao = $p.INSTRUCAO
 
+
+    if($p.status -eq "CONFIRMADO" -or $p.status -eq "PENDENTE"){
+        Write-Host ("[SKIP] PRODUTOR {0}/{1}: {2} ja esta CONFIRMADO - pulando." -f $pIndex, $producers.Count, $p.nome)
+        continue
+    }
+
+
     Write-Host ""
     Write-Host ("PRODUTOR: {0}" -f $nome) -ForegroundColor Green
     Write-Host ("INSTRUCAO: {0}" -f $instrucao) -ForegroundColor Green
 
     Set-Clipboard -Value $instrucao
-    SleepMs 60
+    SleepMs 150
+    Write-Host ("COLANDO INSTRUÇÃO: " -f $instrucao)
     Press-Key("^v")
+    
 
     Press-Key("{ENTER}")
-    SleepMs 30
+    SleepMs 200
+    Write-Host ("CLICANDO NA INSTRUÇÃO: " -f $instrucao)
     Invoke-ClickPos -Name "CLICAR_INSTRUCAO"
 
+
     Start-Sleep 1
+    Write-Host "SHIFT+TAB"
     Press-Key("+{TAB}")
     SleepMs 30
+    Write-Host "CONTROL+A"
     Press-Key("^a")
 
 

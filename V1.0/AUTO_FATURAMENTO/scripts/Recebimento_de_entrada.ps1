@@ -398,7 +398,7 @@ try {
         Abort-IfNeeded
 
         Paste-Text $ch
-        SleepMs 100
+        SleepMs 50
 
         Press-Key("{TAB}")
         SleepMs $DELAY_STEP_MS
@@ -413,6 +413,7 @@ try {
         SleepMs $DELAY_STEP_MS
 
         Write-Host ("  [OK] {0}/{1} gravado." -f $i, $p.notas.Count)
+
     }
 
     Abort-IfNeeded
@@ -435,10 +436,13 @@ try {
 
     if($pIndex -lt $producers.Count){
         Write-Host ""
-        if(-not (Ask-YesNo "PASSAR PARA O PROXIMO PRODUTOR? (S/N)")){
+        <# if(-not (Ask-YesNo "PASSAR PARA O PROXIMO PRODUTOR? (S/N)")){
             Write-Host "Parado pelo usuario."
             exit 3
-        }
+        }#>
+        SleepMs 1000
+        Press-Key("%{TAB}")
+        pause
         Start-Sleep -Seconds 3
     }
 }

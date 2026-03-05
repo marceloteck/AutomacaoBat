@@ -43,7 +43,7 @@ if ($hWnd -ne [IntPtr]::Zero) {
 # CHAMADA click_positions.ps1
 # ===============================
 # $lib = Join-Path $PSScriptRoot "click_positions.ps1"
-$lib = "C:\Users\marcelohenrique-cdt\Documents\AUTOMACAO_V1\AUTO_FATURAMENTO\scripts\click_positions.ps1"
+$lib = Join-Path $PSScriptRoot "..\..\..\AUTO_FATURAMENTO\scripts\click_positions.ps1"
 
 if (Test-Path -LiteralPath $lib) {
     . $lib
@@ -162,7 +162,7 @@ function Parse-NotasIni {
 $ScriptDir = $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($ScriptDir)) { $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path }
 $BaseDir = Split-Path -Parent $ScriptDir
-$NotasPath = Join-Path $BaseDir "input\pec\notas_PEDIDOS.txt"
+$NotasPath = Join-Path $BaseDir "input\ABRIR_TELAS_CTE_RECEBIMENTO_ENTRADA.txt"
 
 try { $lista = Parse-NotasIni $NotasPath }
 catch { Write-Host ("ERRO: " + $_.Exception.Message) -ForegroundColor Red; exit 1 }
@@ -232,43 +232,76 @@ function Press-Key([string]$k) { [System.Windows.Forms.SendKeys]::SendWait($k) }
 function SleepMs([int]$ms) { Start-Sleep -Milliseconds $ms }
 
 
-Write-Host ""
-Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host " AUTOMACAO: F3 -> PEDIDO -> ENTER -> F11" -ForegroundColor Cyan
-Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "Obs: O NOME fica no clipboard para voce Ctrl+V manualmente." -ForegroundColor Cyan
-Write-Host ""
 
 
+######################################### EXECUÇÃO AQUI ABAIXO
+# ================================
+# LISTA DE REPETIÇÕES
+# ================================
+$repeticoes = @(
+    "cCOSP214",
+    "cCOLG270",
+    "cCoft252",
+    "cCOFT240",
+    "cFBED210",
+    "cCOFT222"
+)
+
+
+
+
+    Invoke-ClickPos -Name "clicar_nocentro_"
+    SleepMs 50
+
+    # ALT + F10
+    Press-Key("%{F10}")
+    SleepMs 1200
+
+
+    Invoke-ClickPos -Name "clicar_EMSIM_"
+
+    SleepMs 2000
 
 # ================================
 # LOOP PRINCIPAL
 # ================================
-foreach ($p in $lista) {
-    $nome   = $p.NOME
-    $pedido = $p.PEDIDO
-    $instrucao = $p.INSTRUCAO
+foreach ($rep in $repeticoes) {
+
+    Write-Host "Executando: $rep" -ForegroundColor Cyan
+
+    Invoke-ClickPos -Name "clicar_buscar_"
+    SleepMs 800
+
+    # ===== PRIMEIRO COLAR =====
+    Paste-Text "TEXTO"
+    SleepMs 50
+
+    Press-Key("{ENTER}")
+    SleepMs 1200
+
+    Invoke-ClickPos -Name "clicar_buscar_2"
+    SleepMs 800
+
+    Press-Key("^a")
+    SleepMs 300
 
 
-    # Invoke-DoubleClickPos -Name "NOME_DO_CLICK"
-    # Invoke-ClickPos -Name "CLICAR_IMPRIMIR_PEDIDO"
-    # Set-ClipText $saveDir
-    # Paste-Text $saveDir
-    # Invoke-RightClickPos -Name "MENU_OPCOES"
+    # ===== SEGUNDO COLAR =====
+    Paste-Text $rep
+    SleepMs 50
 
-    Write-Host ""
-    Write-Host ("PRODUTOR: {0}" -f $nome) -ForegroundColor Green
-    Write-Host ("PEDIDO:   {0}" -f $pedido) -ForegroundColor Green
+    Press-Key("{ENTER}")
+    SleepMs 1000
 
-    if (-not (Ask-YesNo "Iniciar este produtor? (S/N)")) {
-        Write-Host "PULADO." -ForegroundColor Yellow
-        continue
-    }
 
+    Invoke-ClickPos -Name "clicar_abrir_aba_1"
+    Write-Host "Finalizado: $rep" -ForegroundColor Green
+
+}
+
+Write-Host "TODAS AS REPETIÇÕES CONCLUÍDAS!" -ForegroundColor Yellow
 
     
 
 
-
-    [void](Read-Host "Quando terminar, pressione Enter para o proximo")
-}
+######################################### EXECUÇÃO AQUI ACIMA

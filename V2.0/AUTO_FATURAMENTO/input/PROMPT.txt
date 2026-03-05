@@ -1,0 +1,58 @@
+agora vc é responsável por deixar esses dados bem organizados
+não pode ter erros, cada arquivo de está respeitosamente separado para copiar e colar
+os dados informados deve ser usados conforme solicitados
+vamos organizar esses dados abaixo e montar a estrutura informada pra cada arquivo, 
+
+veja esses dados da escala de abate:
+```
+LOTE	Pedido	Instrucao	Nome dos Produtores	Total	Aviso	PRECO VC	PRECO BI	PRAZO	Comprador
+1	26771	25321	ANTONIO JOSE SOUSA	21		305	320	15	GILBERTO
+2.12	26742	25285	NIRON DOS SANTOS SENA	13	2.12	305	0	BTG	GILBERTO
+3	26604	25187	FRANCISCA DAS CHAGAS DOS SANTOS MONTEIRO ANASTACIO	18		305	0	BTG	RENAM
+4.7	26728	25246	DIVINO ALVES DE OLIVEIRA	18	4.7	300	300	30	JUNIOR
+5	26670	25219	MARCIO MARTINS DOS ANJOS	18		310	0	30	GILBERTO
+6	26727	25245	WILDER SANTANA SAMPAIO JUNIOR	60		310	0	30	GILBERTO
+8.11	26770	25320	CARLOS GONCO DE MELO	19	8.11	310	320	7	RENATO
+9	26679	25223	MARIO BIERNASKI	102		310	0	15	RENAM
+10	26772	25322	ARIOVALDO LEONEL	18		0	330	30	RENATO
+13	26593	25175	RICARDO DE MIRANDA ALVES	54		0	325	2	SAMUEL
+14	26723	25238	ANTONIO CARLOS LOPES DE OLIVEIRA	36		0	330	30	GILBERTO
+15	26591	25174	ADOLFO GONCALVES JORCELINO JUNIOR	119		0	330	7	RENATO
+```
+
+agora seguindo esses dados da escala de abate faça esses arquivos pra mim seguindo esse padrão
+
+para o arquivo RecebimentoDeEntrada.txt deve ficar assim:
+- vai pegar somente o nome do produtor e a instrução e fazer um desse pra cada produtor, STATUS deve ser pendente
+TIPO de ser PF pra pessoa física e PJ pra pessoa jurídica, em NOTAS, deve ter duas quebra de linha abaixo antes de começar o outro bloco [PRODUTOR].
+```
+[PRODUTOR]
+NOME=NOME DO PRODUTOR
+STATUS=PENDENTE
+TIPO=PF
+INSTRUCAO=00000
+PEDIDO=00000
+NIVEL=0
+
+NOTAS=
+{
+
+}
+
+GRorJBS=
+{
+2799317X1
+}
+
+QUANT_MINUTAS=
+{
+
+}
+
+PLACAS=
+{
+
+}
+
+```
+
